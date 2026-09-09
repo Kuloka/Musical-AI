@@ -37,7 +37,7 @@ app.whenReady().then(async () => {
   const win = new BrowserWindow({ width: 1200, height: 780, frame: false, show: false, webPreferences: { preload: path.join(__dirname, 'ui-preload.cjs'), offscreen: true } });
   const errors = [];
   win.webContents.on('console-message', (_event, level, message) => { if (level === 3 && !/ERR_|Content Security|Failed to load resource/.test(message)) errors.push(message); });
-  await win.loadFile(path.join(root, 'index.html'));
+  await win.loadFile(path.join(root, process.argv.includes('--packaged') ? 'dist/win-unpacked/resources/app.asar/index.html' : 'index.html'));
   await waitFor(win, `document.querySelector('#localSetupBtn').textContent === 'Быстрая настройка'`);
   await new Promise(resolve => setTimeout(resolve, 1800));
   fs.writeFileSync(path.join(out, 'musical-welcome.png'), (await win.webContents.capturePage()).toPNG());
