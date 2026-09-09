@@ -1,6 +1,27 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+  discordStatus: () => ipcRenderer.invoke('discord:status'),
+  discordMedia: () => ipcRenderer.invoke('discord:media'),
+  discordImport: () => ipcRenderer.invoke('discord:import'),
+  discordExport: () => ipcRenderer.invoke('discord:export'),
+  windowAction: action => ipcRenderer.invoke('window:action', action),
+  skillsList: () => ipcRenderer.invoke('skills:list'),
+  skillsImport: () => ipcRenderer.invoke('skills:import'),
+  skillsToggle: (name, active) => ipcRenderer.invoke('skills:toggle', name, active),
+  skillsFolder: () => ipcRenderer.invoke('skills:folder'),
+  localStatus: () => ipcRenderer.invoke('local:status'),
+  localSetup: () => ipcRenderer.invoke('local:setup'),
+  localCancel: () => ipcRenderer.invoke('local:cancel'),
+  localStart: () => ipcRenderer.invoke('local:start'),
+  localActivate: model => ipcRenderer.invoke('local:activate', model),
+  localPull: model => ipcRenderer.invoke('local:pull', model),
+  ollamaInstall: () => ipcRenderer.invoke('ollama:install'),
+  onLocalProgress: cb => {
+    const handler = (_event, data) => cb(data);
+    ipcRenderer.on('local:progress', handler);
+    return () => ipcRenderer.removeListener('local:progress', handler);
+  },
   // Данные (чаты / группы)
   dataGet:        ()              => ipcRenderer.invoke('data:get'),
   dataSave:       (data)          => ipcRenderer.invoke('data:save', data),

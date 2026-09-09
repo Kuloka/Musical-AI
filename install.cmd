@@ -1,8 +1,8 @@
 @echo off
-title Nevo - Install
+title Musical AI - Install
 echo.
 echo   ========================================
-echo          Nevo - Installation
+echo          Musical AI - Installation
 echo   ========================================
 echo.
 
@@ -23,30 +23,13 @@ echo   [*] Installing Electron...
 call npm install
 echo.
 
-where ollama >nul 2>&1
-if %errorlevel% neq 0 (
-    echo   [!] Ollama not found.
-    echo   [*] Installing Ollama from https://ollama.com...
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://ollama.com/install.ps1 | iex"
-    echo.
-    where ollama >nul 2>&1
-    if %errorlevel% neq 0 (
-        echo   [!] Ollama installation did not finish successfully.
-        echo   You can still install it manually from https://ollama.com/download/windows
-    ) else (
-        echo   [OK] Ollama installed
-    )
-    echo.
-) else (
-    echo   [OK] Ollama found
-    echo   Models:
-    ollama list
-)
+echo   The app will offer Quick setup for its local model.
+echo   Ollama is optional and can be installed from the app.
 
 echo.
 echo   ========================================
 echo   Done! Now run start.vbs without a terminal window
-echo   Projects will be saved to: %USERPROFILE%\NevoProject
+echo   Projects will be saved to: %USERPROFILE%\MusicalProject
 echo   ========================================
 echo.
 pause

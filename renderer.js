@@ -1,5 +1,5 @@
 /* ============================================
-   Nevo Renderer
+   Musical AI Renderer
    Chat-first assistant. Ollama-powered.
    ============================================ */
 
@@ -7,6 +7,7 @@
   "use strict";
 
   const $ = (id) => document.getElementById(id);
+  document.querySelectorAll('[data-window]').forEach(button => button.addEventListener('click', () => window.api?.windowAction(button.dataset.window)));
 
   // ============================================================
   //  STATE
@@ -17,7 +18,9 @@
     thinkLevel: "medium",
     accessMode: "ask",
     appLanguage: "en",
-    theme: "light",
+    theme: "dark",
+    teamEnabled: true,
+    workerModels: [],
     computeMode: "auto",
     selectedFluxVariant: null,
     downloadedLanguages: ["en"],
@@ -25,12 +28,28 @@
   };
 
   let currentChatId = null;
+  let activeSkillContext = "";
+  function renderSkills(entries) {
+    activeSkillContext = entries.filter(entry => entry.enabled).map(entry => `Skill: ${entry.name}\n${entry.content}`).join("\n\n");
+    $("skillsList").innerHTML = entries.map(entry => `<label class="skill-row"><input type="checkbox" data-skill="${escapeHtml(entry.name)}" ${entry.enabled ? "checked" : ""}><span>${escapeHtml(entry.name)}</span></label>`).join("");
+    $("skillsList").querySelectorAll("input").forEach(input => input.addEventListener("change", async () => {
+      try { renderSkills(await window.api.skillsToggle(input.dataset.skill, input.checked)); $("skillsError").textContent = ""; }
+      catch (error) { input.checked = !input.checked; $("skillsError").textContent = error.message; }
+    }));
+  }
+  $("importSkillBtn").addEventListener("click", async () => {
+    try { renderSkills(await window.api.skillsImport()); $("skillsError").textContent = ""; }
+    catch (error) { $("skillsError").textContent = error.message; }
+  });
+  $("skillsFolderBtn").addEventListener("click", () => window.api.skillsFolder());
   let isGenerating = false;
   let abortController = null;
   let generationSerial = 0;
   let activeGenerationId = 0;
 
   let ollamaRunning = false;
+  let localRuntimeState = {};
+  let teamRows = [];
   let availableModels = [];          // установленные модели [{name,size,details}]
   let pullingModels = {};            // { modelName: percent }
   let fluxStatus = null;
@@ -188,7 +207,7 @@
       textAI: "Text AI",
       generationAI: "Generation AI",
       chooseModel: "Choose model",
-      askPlaceholder: "Ask Nevo anything...",
+      askPlaceholder: "Ask Musical AI anything...",
       modelSearch: "Search models...",
       folderPlaceholder: "Folder name...",
       setupTitle: "Clarify the task",
@@ -234,10 +253,10 @@
       computeMode: "Compute mode",
       computeModeDesc: "Auto uses the best available device. CPU is safer for PCs without a GPU.",
       progress: "Progress",
-      nevoActions: "Nevo actions",
+      musicalActions: "Musical AI actions",
       codingPreview: "Coding preview",
       approvalTitle: "Ask before changes",
-      approvalDefault: "Nevo wants to edit a file.",
+      approvalDefault: "Musical AI wants to edit a file.",
       accept: "Accept",
       acceptInChat: "Accept in this chat",
       denied: "Denied",
@@ -305,7 +324,7 @@
       "textAI": "Text AI",
       "generationAI": "Generation AI",
       "chooseModel": "\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u043c\u043e\u0434\u0435\u043b\u044c",
-      "askPlaceholder": "\u0421\u043f\u0440\u043e\u0441\u0438\u0442\u0435 Nevo \u043e \u0447\u0451\u043c \u0443\u0433\u043e\u0434\u043d\u043e...",
+      "askPlaceholder": "\u0421\u043f\u0440\u043e\u0441\u0438\u0442\u0435 Musical AI \u043e \u0447\u0451\u043c \u0443\u0433\u043e\u0434\u043d\u043e...",
       "modelSearch": "\u041f\u043e\u0438\u0441\u043a \u043c\u043e\u0434\u0435\u043b\u0435\u0439...",
       "folderPlaceholder": "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043f\u0430\u043f\u043a\u0438...",
       "setupTitle": "\u0423\u0442\u043e\u0447\u043d\u0438\u0442\u044c \u0437\u0430\u0434\u0430\u0447\u0443",
@@ -351,10 +370,10 @@
       "computeMode": "\u0420\u0435\u0436\u0438\u043c \u0432\u044b\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u0439",
       "computeModeDesc": "Auto \u0432\u044b\u0431\u0438\u0440\u0430\u0435\u0442 \u043b\u0443\u0447\u0448\u0435\u0435 \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u043e. CPU \u043d\u0430\u0434\u0451\u0436\u043d\u0435\u0435 \u0434\u043b\u044f \u041f\u041a \u0431\u0435\u0437 \u0432\u0438\u0434\u0435\u043e\u043a\u0430\u0440\u0442\u044b.",
       "progress": "\u041f\u0440\u043e\u0433\u0440\u0435\u0441\u0441",
-      "nevoActions": "\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u044f Nevo",
+      "musicalActions": "\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u044f Musical AI",
       "codingPreview": "\u041f\u0440\u0435\u0432\u044c\u044e \u043a\u043e\u0434\u0430",
       "approvalTitle": "\u0421\u043f\u0440\u043e\u0441\u0438\u0442\u044c \u043f\u0435\u0440\u0435\u0434 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f\u043c\u0438",
-      "approvalDefault": "Nevo \u0445\u043e\u0447\u0435\u0442 \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0444\u0430\u0439\u043b.",
+      "approvalDefault": "Musical AI \u0445\u043e\u0447\u0435\u0442 \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0444\u0430\u0439\u043b.",
       "accept": "\u041f\u0440\u0438\u043d\u044f\u0442\u044c",
       "acceptInChat": "\u041f\u0440\u0438\u043d\u044f\u0442\u044c \u0432 \u044d\u0442\u043e\u043c \u0447\u0430\u0442\u0435",
       "denied": "\u041e\u0442\u043a\u043b\u043e\u043d\u0438\u0442\u044c",
@@ -422,7 +441,7 @@
       recent: "Reciente",
       models: "Modelos",
       chooseModel: "Elegir modelo",
-      askPlaceholder: "Pregunta a Nevo cualquier cosa...",
+      askPlaceholder: "Pregunta a Musical AI cualquier cosa...",
       modelSearch: "Buscar modelos...",
       setupTitle: "Aclarar tarea",
       access: { ask: "Preguntar antes de cambios", auto: "Editar automaticamente", plan: "Modo plan", full: "Acceso completo" },
@@ -444,7 +463,7 @@
       recent: "Recent",
       models: "Modeles",
       chooseModel: "Choisir un modele",
-      askPlaceholder: "Demandez n'importe quoi a Nevo...",
+      askPlaceholder: "Demandez n'importe quoi a Musical AI...",
       modelSearch: "Rechercher des modeles...",
       setupTitle: "Preciser la tache",
       access: { ask: "Demander avant modifications", auto: "Modifier automatiquement", plan: "Mode plan", full: "Acces complet" },
@@ -466,7 +485,7 @@
       recent: "Zuletzt",
       models: "Modelle",
       chooseModel: "Modell wahlen",
-      askPlaceholder: "Frag Nevo alles...",
+      askPlaceholder: "Frag Musical AI alles...",
       modelSearch: "Modelle suchen...",
       setupTitle: "Aufgabe klaren",
       access: { ask: "Vor Anderungen fragen", auto: "Automatisch bearbeiten", plan: "Planmodus", full: "Voller Zugriff" },
@@ -488,7 +507,7 @@
       recent: "Recentes",
       models: "Modelos",
       chooseModel: "Escolher modelo",
-      askPlaceholder: "Pergunte qualquer coisa ao Nevo...",
+      askPlaceholder: "Pergunte qualquer coisa ao Musical AI...",
       modelSearch: "Buscar modelos...",
       setupTitle: "Esclarecer tarefa",
       access: { ask: "Perguntar antes de alterar", auto: "Editar automaticamente", plan: "Modo plano", full: "Acesso total" },
@@ -510,7 +529,7 @@
       recent: "Recenti",
       models: "Modelli",
       chooseModel: "Scegli modello",
-      askPlaceholder: "Chiedi qualsiasi cosa a Nevo...",
+      askPlaceholder: "Chiedi qualsiasi cosa a Musical AI...",
       modelSearch: "Cerca modelli...",
       setupTitle: "Chiarisci attivita",
       access: { ask: "Chiedi prima delle modifiche", auto: "Modifica automaticamente", plan: "Modalita piano", full: "Accesso completo" },
@@ -532,7 +551,7 @@
       recent: "Son",
       models: "Modeller",
       chooseModel: "Model sec",
-      askPlaceholder: "Nevo'ya istedigini sor...",
+      askPlaceholder: "Musical AI'ya istedigini sor...",
       modelSearch: "Model ara...",
       setupTitle: "Gorevi netlestir",
       access: { ask: "Degisiklikten once sor", auto: "Otomatik duzenle", plan: "Plan modu", full: "Tam erisim" },
@@ -574,7 +593,7 @@
       projects: "\u041f\u0440\u043e\u0454\u043a\u0442\u0438",
       recent: "\u041d\u0435\u0434\u0430\u0432\u043d\u0456",
       models: "\u041c\u043e\u0434\u0435\u043b\u0456",
-      askPlaceholder: "\u0417\u0430\u043f\u0438\u0442\u0430\u0439 Nevo \u043f\u0440\u043e \u0449\u043e \u0437\u0430\u0432\u0433\u043e\u0434\u043d\u043e...",
+      askPlaceholder: "\u0417\u0430\u043f\u0438\u0442\u0430\u0439 Musical AI \u043f\u0440\u043e \u0449\u043e \u0437\u0430\u0432\u0433\u043e\u0434\u043d\u043e...",
       access: { ask: "\u041f\u0438\u0442\u0430\u0442\u0438 \u043f\u0435\u0440\u0435\u0434 \u0437\u043c\u0456\u043d\u0430\u043c\u0438", auto: "\u0420\u0435\u0434\u0430\u0433\u0443\u0432\u0430\u0442\u0438 \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u043d\u043e", plan: "\u0420\u0435\u0436\u0438\u043c \u043f\u043b\u0430\u043d\u0443", full: "\u041f\u043e\u0432\u043d\u0438\u0439 \u0434\u043e\u0441\u0442\u0443\u043f" },
       motivationLines: ["\u0417\u0431\u0435\u0440\u0438 \u0442\u0435, \u0449\u043e \u0434\u0430\u0432\u043d\u043e \u0443\u044f\u0432\u043b\u044f\u0454\u0448.", "\u0417\u0440\u043e\u0431\u0438 \u0456\u0434\u0435\u044e \u0436\u0438\u0432\u043e\u044e.", "\u0422\u0432\u043e\u044f \u043d\u0430\u0441\u0442\u0443\u043f\u043d\u0430 \u0432\u0435\u0440\u0441\u0456\u044f \u043f\u043e\u0447\u0438\u043d\u0430\u0454\u0442\u044c\u0441\u044f \u0442\u0443\u0442."],
     },
@@ -795,7 +814,8 @@
     const s = await window.api.settingsGet();
     if (s) settings = Object.assign(settings, s);
     if (!settings.appLanguage) settings.appLanguage = "en";
-    if (!settings.theme) settings.theme = "light";
+    if (!settings.theme) settings.theme = "dark";
+    if (!settings.musicalThemeApplied) { settings.theme = "dark"; settings.musicalThemeApplied = true; }
     if (!settings.computeMode) settings.computeMode = "auto";
     if (!settings.selectedFluxVariant) settings.selectedFluxVariant = null;
     if (!settings.preferredWebSources || typeof settings.preferredWebSources !== "object") settings.preferredWebSources = {};
@@ -809,8 +829,7 @@
   function migrateBrandNamesInData() {
     let changed = false;
     const rename = value => repairMojibakeText(String(value || ""))
-      .replace(/^NebulaProject/i, "NevoProject")
-      .replace(/^NevoProject/i, "NevoProject");
+      .replace(/^(Nebula|Nevo)Project/i, "MusicalProject");
     data.groups.forEach(group => {
       const nextName = rename(group.name);
       const nextFolderName = rename(group.folderName || group.name);
@@ -949,7 +968,7 @@
         row.className = "panel-app-card";
         row.innerHTML = `
           <div class="panel-app-title">App preview</div>
-          <div class="panel-app-name">${escapeHtml(item.name || "Nevo app")}</div>
+          <div class="panel-app-name">${escapeHtml(item.name || "Musical AI app")}</div>
           <div class="panel-app-grid">
             <span>Interface</span><strong>${escapeHtml(item.interface || "Generated UI")}</strong>
             <span>Entry</span><strong>${escapeHtml(item.entry || "main.txt")}</strong>
@@ -1004,7 +1023,7 @@
     return {
       kind: "overview",
       key: "__overview",
-      name: file.replace(/\.[^.]+$/, "") || "Nevo app",
+      name: file.replace(/\.[^.]+$/, "") || "Musical AI app",
       interface: iface,
       entry,
       run
@@ -1070,6 +1089,7 @@
 
   function resetProgress() {
     agentProgress = [];
+    renderTeam([]);
     progressDismissed = false;
     codingPreviewItems = [];
     panelFileTabsState = [];
@@ -1100,39 +1120,84 @@
     }
   }
 
-  function renderSettings() {
-    const downloaded = new Set(settings.downloadedLanguages || ["en"]);
-    applyAppLanguageBasics();
+  let discordMediaPreview = null;
+  async function updateDiscordStatus() {
+    if (!window.api?.discordStatus) return;
+    const result = await window.api.discordStatus();
+    const ru = settings.appLanguage === 'ru';
+    const labels = ru ? { disabled: 'Активность выключена', connecting: 'Подключение к Discord…', waiting: 'Ожидание приложения Discord', active: 'Активность включена', error: 'Ошибка Discord', 'needs-id': 'Не задан Application ID' } : { disabled: 'Activity is off', connecting: 'Connecting to Discord…', waiting: 'Waiting for Discord desktop', active: 'Activity is on', error: 'Discord error', 'needs-id': 'Application ID required' };
+    $('discordStatus').textContent = (labels[result.state] || result.state) + (result.message ? ': ' + result.message : '');
+  }
+  function renderDiscordSettings() {
+    const ru = settings.appLanguage === 'ru';
+    $('discordToggle').setAttribute('aria-checked', String(settings.discordActivity?.enabled === true));
+    $('discordDescription').textContent = ru ? 'Показывать Musical AI в вашем профиле Discord.' : 'Show Musical AI on your Discord profile.';
+    if (document.activeElement !== $('discordImageUrl')) $('discordImageUrl').value = settings.discordActivity?.image || '';
+    $('discordImageLinkLabel').textContent = ru ? 'Ссылка на изображение или имя ресурса Discord' : 'Image URL or Discord asset name';
+    $('discordImageHelp').textContent = ru ? 'Discord использует публичную HTTPS-ссылку. Файл из Add сохраняется локально: разместите подготовленное изображение и вставьте ссылку сюда. GIF работает по ссылке; загруженные ресурсы Discord — без анимации.' : 'Discord uses a public HTTPS URL. Add prepares a local file: host the prepared image and paste its URL here. GIF works by URL; uploaded Discord assets are static.';
+    $('discordImageUrl').placeholder = ru ? 'Пусто — анимированный логотип Musical AI' : 'Leave empty for the animated Musical AI logo';
+    $('discordImageHelp').textContent = (ru ? 'По умолчанию в Discord играет анимация струны Musical AI. Для своей картинки вставьте публичную HTTPS-ссылку. ' : 'Discord uses the animated Musical AI string logo by default. For a custom image, paste a public HTTPS URL. ') + (ru ? 'Add подготавливает локальный файл для размещения.' : 'Add prepares a local file for hosting.');
+    $('discordExportImage').textContent = ru ? 'Сохранить подготовленный файл' : 'Save prepared image';
+    if (discordMediaPreview) {
+      const m = discordMediaPreview;
+      $('discordImagePreview').src = m.preview;
+      $('discordImagePreview').hidden = false;
+      $('discordImagePlaceholder').hidden = true;
+      $('discordExportImage').hidden = false;
+      $('discordImageSize').textContent = `${m.width} × ${m.height} px${m.animated ? ' · GIF' : ''}${m.resized ? ` (${m.originalWidth} × ${m.originalHeight})` : ''}`;
+      $('discordImageWarning').textContent = m.small ? (ru ? 'Маленькое изображение будет выглядеть пиксельным. Рекомендуем 1024 × 1024.' : 'This small image will look pixelated. We recommend 1024 × 1024.') : '';
+    }
+    updateDiscordStatus().catch(() => {});
+  }
+  $('discordToggle').addEventListener('click', async () => {
+    settings.discordActivity = { ...settings.discordActivity, enabled: !settings.discordActivity?.enabled };
+    await persist(); renderDiscordSettings();
+  });
+  $('discordImageUrl').addEventListener('change', async () => {
+    settings.discordActivity = { ...settings.discordActivity, image: $('discordImageUrl').value.trim() };
+    await persist(); renderDiscordSettings();
+  });
+  $('discordAddImage').addEventListener('click', async () => {
+    if (!window.api?.discordImport) return;
+    const button = $('discordAddImage'); button.disabled = true;
+    try {
+      const result = await window.api.discordImport();
+      if (result.error) $('discordImageWarning').textContent = result.error;
+      else if (result.media) { discordMediaPreview = result.media; renderDiscordSettings(); }
+    } catch (error) { $('discordImageWarning').textContent = error.message; }
+    finally { button.disabled = false; }
+  });
+  $('discordExportImage').addEventListener('click', async () => {
+    const result = await window.api?.discordExport();
+    if (result?.error) $('discordImageWarning').textContent = result.error;
+  });
+  window.api?.discordMedia?.().then(media => { discordMediaPreview = media; }).catch(() => {});
+  setInterval(() => { if (settingsModal.classList.contains('show')) updateDiscordStatus().catch(() => {}); }, 2000);
 
+  function renderSettings() {
+    renderDiscordSettings();
+    applyAppLanguageBasics();
+    const russian = settings.appLanguage === "ru";
+    settingsModal.querySelectorAll('[data-settings-tab]').forEach(button => {
+      button.textContent = ({general: russian ? 'Общие' : 'General', models: russian ? 'Модели' : 'Models', skills: 'Skills', discord: 'Discord Activity'})[button.dataset.settingsTab];
+    });
     if (languagePackList) {
-      languagePackList.innerHTML = "";
+      languagePackList.innerHTML = '';
+      $('languageValue').textContent = APP_LANGUAGES.find(lang => lang.code === (settings.appLanguage || 'en'))?.name || 'English';
       APP_LANGUAGES.forEach(lang => {
-        const installed = downloaded.has(lang.code);
-        const selected = (settings.appLanguage || "en") === lang.code;
-        const label = selected ? t("selected") : installed ? t("choose") : t("download");
-        const row = document.createElement("div");
-        row.className = `language-pack ${selected ? "selected" : ""}`;
-        row.innerHTML = `
-          <div>
-            <div class="language-pack-name">${escapeHtml(lang.name)}</div>
-            <div class="language-pack-code">${escapeHtml(lang.code.toUpperCase())}</div>
-          </div>
-          <button class="catalog-btn ${installed ? "" : "primary"}" data-lang="${lang.code}" ${selected ? "disabled" : ""}>${label}</button>
-        `;
-        row.querySelector("button").addEventListener("click", () => {
-          const next = new Set(settings.downloadedLanguages || ["en"]);
-          if (!installed) {
-            next.add(lang.code);
-          } else {
-            settings.appLanguage = lang.code;
-          }
-          settings.downloadedLanguages = Array.from(next);
-          applyAppLanguageBasics();
-          renderSidebar();
-          renderSettings();
-          persist();
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.role = 'option';
+        button.dataset.lang = lang.code;
+        button.setAttribute('aria-selected', String((settings.appLanguage || 'en') === lang.code));
+        button.textContent = lang.name;
+        button.addEventListener('click', () => {
+          settings.appLanguage = lang.code;
+          settings.downloadedLanguages = [...new Set([...(settings.downloadedLanguages || ['en']), lang.code])];
+          closeLanguagePicker();
+          renderSettings(); renderSidebar(); persist();
         });
-        languagePackList.appendChild(row);
+        languagePackList.appendChild(button);
       });
     }
     applyTheme();
@@ -1140,7 +1205,8 @@
 
   function applyAppLanguageBasics() {
     document.documentElement.lang = settings.appLanguage || "en";
-    document.title = "Nevo";
+    document.title = "Musical AI";
+    updateMusicalControls();
     const textById = {
       setupTitle: t("setupTitle"),
       groupModalTitle: t("newFolder"),
@@ -1178,7 +1244,7 @@
     const progressTitle = document.querySelector(".progress-head > span");
     if (progressTitle) progressTitle.textContent = t("progress");
     const panelTitle = document.querySelector(".panel-header > span");
-    if (panelTitle) panelTitle.textContent = t("nevoActions");
+    if (panelTitle) panelTitle.textContent = t("musicalActions");
     const panelPreviewTitle = document.querySelector(".panel-progress-title");
     if (panelPreviewTitle) panelPreviewTitle.textContent = t("codingPreview");
     if (!settings.selectedModel) renderSelectedModel(null);
@@ -1190,8 +1256,8 @@
     if (settingsDescs?.[0]) settingsDescs[0].textContent = t("themeDesc");
     if (settingsTitles?.[1]) settingsTitles[1].textContent = t("computeMode");
     if (settingsDescs?.[1]) settingsDescs[1].textContent = t("computeModeDesc");
-    if (settingsTitles?.[2]) settingsTitles[2].textContent = t("languagePacks");
-    if (settingsDescs?.[2]) settingsDescs[2].textContent = t("languagePacksDesc");
+    if (settingsTitles?.[2]) settingsTitles[2].textContent = settings.appLanguage === "ru" ? "Язык" : "Language";
+    if (settingsDescs?.[2]) settingsDescs[2].textContent = settings.appLanguage === "ru" ? "Язык интерфейса" : "Interface language";
     themeSegment?.querySelector('[data-theme="dark"]') && (themeSegment.querySelector('[data-theme="dark"]').textContent = t("dark"));
     themeSegment?.querySelector('[data-theme="light"]') && (themeSegment.querySelector('[data-theme="light"]').textContent = t("light"));
     const accessDescriptions = {
@@ -1522,36 +1588,150 @@
   // ============================================================
   async function checkOllama() {
     if (!window.api) return;
-    const res = await window.api.ollamaStatus();
-    ollamaRunning = res.running;
-    if (ollamaRunning) {
-      availableModels = res.models || [];
-      statusDot.className = "status-dot online";
-      if (!settings.selectedModel && availableModels.length > 0) {
-        selectModel(availableModels[0].name);
-      }
-      if (availableModels.length === 0) {
-        welcomeHint.textContent = settings.appLanguage === "ru"
-          ? "\u041d\u0435\u0442 \u043c\u043e\u0434\u0435\u043b\u0435\u0439. \u0421\u043a\u0430\u0447\u0430\u0439\u0442\u0435 \u043c\u043e\u0434\u0435\u043b\u044c \u0447\u0435\u0440\u0435\u0437 \u043a\u0430\u0442\u0430\u043b\u043e\u0433."
-          : "No models yet. Download a model from the catalog.";
-      } else {
-        welcomeHint.textContent = settings.appLanguage === "ru"
-          ? `${availableModels.length} \u043c\u043e\u0434\u0435\u043b\u0435\u0439 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e. \u0413\u043e\u0442\u043e\u0432\u043e \u043a \u0440\u0430\u0431\u043e\u0442\u0435.`
-          : `${availableModels.length} models available. Ready to work.`;
-      }
-    } else {
-      availableModels = [];
-      statusDot.className = res.installing ? "status-dot loading" : "status-dot offline";
-      if (res.installing) {
-        welcomeHint.textContent = settings.appLanguage === "ru" ? "Ollama \u0443\u0441\u0442\u0430\u043d\u0430\u0432\u043b\u0438\u0432\u0430\u0435\u0442\u0441\u044f. Nevo \u0437\u0430\u043f\u0443\u0441\u0442\u0438\u0442 \u0435\u0451 \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438." : "Ollama is being installed. Nevo will start it automatically.";
-      } else if (!res.installed) {
-        welcomeHint.textContent = settings.appLanguage === "ru" ? "Ollama \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430. \u0423\u0441\u0442\u0430\u043d\u043e\u0432\u0438 \u0438 \u0437\u0430\u043f\u0443\u0441\u0442\u0438 Ollama, \u0437\u0430\u0442\u0435\u043c \u043d\u0430\u0436\u043c\u0438 \u043d\u0430 \u0438\u043d\u0434\u0438\u043a\u0430\u0442\u043e\u0440." : "Ollama was not found. Install and start Ollama, then click the status indicator.";
-      } else {
-        welcomeHint.textContent = settings.appLanguage === "ru" ? "Ollama \u043d\u0435 \u0437\u0430\u043f\u0443\u0449\u0435\u043d\u0430. \u041d\u0430\u0436\u043c\u0438 \u043d\u0430 \u0438\u043d\u0434\u0438\u043a\u0430\u0442\u043e\u0440, \u0447\u0442\u043e\u0431\u044b \u043e\u0442\u043a\u0440\u044b\u0442\u044c Ollama." : "Ollama is not running. Click the status indicator to open it.";
-      }
-    }
+    const [res, local] = await Promise.all([window.api.ollamaStatus(), window.api.localStatus()]);
+    localRuntimeState = local;
+    ollamaRunning = res.running || local.running || local.installed;
+    availableModels = res.models || [];
+    availableModels.unshift(...(local.models || (local.running ? [{ name: local.model, size: 1117320736, details: {}, backend: "embedded" }] : [])));
+    statusDot.className = ollamaRunning ? "status-dot online" : res.installing ? "status-dot loading" : "status-dot offline";
+    if (availableModels.length && !availableModels.some(model => model.name === settings.selectedModel)) selectModel(availableModels[0].name);
+    welcomeHint.textContent = availableModels.length
+      ? (settings.appLanguage === "ru" ? "Модели готовы к работе." : "Local models are ready.")
+      : (settings.appLanguage === "ru" ? "Нажми «Быстрая настройка» — приложение подготовит модель само." : "Choose Quick setup to prepare your first model automatically.");
+    $("localSetupCard").hidden = !MusicalAI.shouldShowSetup(local, availableModels.length, settings.localSetupCompleted);
+    $("localSetupBtn").disabled = !local.supported || ["windows", "windows-install", "engine", "extracting", "model", "starting"].includes(local.stage);
     renderModelDropdown();
+    updateMusicalControls();
   }
+
+  function updateMusicalControls() {
+    const ru = settings.appLanguage === "ru";
+    $("skillsHint").textContent = ru ? "Импортируй инструкции из Markdown и включи нужные для следующих запросов." : "Import Markdown instructions and enable them for your next requests.";
+    $("importSkillBtn").textContent = ru ? "Импорт .md" : "Import .md";
+    $("skillsFolderBtn").textContent = ru ? "Открыть папку" : "Open folder";
+    $("teamToggle").textContent = ru ? `Агенты · ${settings.teamEnabled ? "Авто" : "Выкл"}` : `Agents · ${settings.teamEnabled ? "Auto" : "Off"}`;
+    $("teamToggle").setAttribute("aria-pressed", String(!!settings.teamEnabled));
+    $("localSetupTitle").textContent = ru ? "Готово за одну настройку" : "Ready in one setup";
+    $("localSetupDescription").textContent = ru ? "Движок + Qwen 1.5B · 1,14 ГБ · Windows x64 · без Ollama. Компоненты Windows при необходимости: ещё 26 МБ." : "Engine + Qwen 1.5B · 1.14 GB · Windows x64 · no Ollama. Windows components if needed: another 26 MB.";
+    $("localSetupBtn").textContent = ru ? "Быстрая настройка" : "Quick setup";
+    $("localCancelBtn").textContent = ru ? "Отменить" : "Cancel";
+    $("installOllamaBtn").textContent = ru ? "Установить Ollama" : "Install Ollama instead";
+    if (!teamRows.length) $("teamHeading").textContent = ru ? "Работа сабагентов" : "Subagents working";
+    $("agentSettingsTitle").textContent = ru ? "Модели сабагентов" : "Subagent models";
+    $("agentSettingsHint").textContent = ru ? "Авто использует основную модель. Можно назначить разные установленные модели. Параллельность зависит от памяти и движка; ускорение не гарантировано." : "Auto shares the main model. You can assign different installed models. Parallelism depends on memory and engine; speedup is not guaranteed.";
+    for (let i = 0; i < 2; i++) {
+      const select = $("workerModel" + i);
+      const chosen = settings.workerModels?.[i] || "";
+      select.innerHTML = `<option value="">${ru ? "Основная модель" : "Main model"}</option>` + availableModels.filter(m => !modelSupportsVision(m.name)).map(m => `<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)}</option>`).join("");
+      select.value = chosen;
+      syncWorkerPicker(select);
+    }
+    const sub = document.querySelector(".welcome-sub");
+    if (sub) sub.textContent = ru ? "Локальная AI-студия. Одна задача — совместная работа агентов." : "Your local AI studio. One task, a team of agents.";
+  }
+
+  function syncWorkerPicker(select) {
+    let picker = select.parentElement.querySelector('.worker-picker');
+    if (!picker) {
+      select.hidden = true;
+      picker = document.createElement('div'); picker.className = 'worker-picker';
+      const trigger = document.createElement('button'); trigger.type = 'button'; trigger.className = 'worker-picker-trigger';
+      trigger.setAttribute('aria-haspopup', 'listbox'); trigger.setAttribute('aria-expanded', 'false');
+      trigger.setAttribute('aria-label', select.id === 'workerModel0' ? 'Agent 1 model' : 'Agent 2 model');
+      const list = document.createElement('div'); list.className = 'worker-picker-list'; list.id = select.id + 'Options';
+      list.setAttribute('role', 'listbox'); list.setAttribute('aria-label', trigger.getAttribute('aria-label')); list.inert = true;
+      trigger.setAttribute('aria-controls', list.id);
+      picker.append(trigger, list); select.after(picker);
+      const close = () => { picker.classList.remove('open'); trigger.setAttribute('aria-expanded', 'false'); list.inert = true; };
+      trigger.addEventListener('click', () => {
+        const open = !picker.classList.contains('open');
+        document.querySelectorAll('.worker-picker.open .worker-picker-trigger').forEach(other => { if (other !== trigger) other.click(); });
+        picker.classList.toggle('open', open); trigger.setAttribute('aria-expanded', String(open)); list.inert = !open;
+        if (open) list.querySelector('[aria-selected="true"]')?.focus();
+      });
+      picker.addEventListener('keydown', event => {
+        if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(); trigger.focus(); }
+        else if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+          event.preventDefault();
+          if (!picker.classList.contains('open')) trigger.click();
+          const options = [...list.querySelectorAll('button')];
+          const current = options.indexOf(document.activeElement);
+          const next = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : (current + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+          options[next]?.focus();
+        }
+      });
+      picker.addEventListener('focusout', event => { if (!picker.contains(event.relatedTarget)) close(); });
+      document.addEventListener('click', event => { if (!picker.contains(event.target)) close(); });
+      list.addEventListener('click', event => {
+        const option = event.target.closest('[data-value]'); if (!option) return;
+        select.value = option.dataset.value; select.dispatchEvent(new Event('change', { bubbles: true }));
+        close(); syncWorkerPicker(select); trigger.focus();
+      });
+    }
+    const trigger = picker.querySelector('.worker-picker-trigger');
+    trigger.textContent = select.selectedOptions[0]?.textContent || select.options[0]?.textContent || 'Main model';
+    const list = picker.querySelector('.worker-picker-list');
+    list.replaceChildren(...[...select.options].map(option => {
+      const button = document.createElement('button'); button.type = 'button'; button.setAttribute('role', 'option');
+      button.dataset.value = option.value; button.textContent = option.textContent;
+      button.setAttribute('aria-selected', String(option.selected)); return button;
+    }));
+  }
+
+  function renderTeam(rows) {
+    teamRows = rows;
+    const panel = $("teamPanel");
+    const workers = rows.filter(row => row.id.startsWith("worker-"));
+    panel.hidden = !workers.length;
+    if (thinkingEl && workers.length) thinkingEl.querySelector(".message-body").appendChild(panel);
+    const container = $("teamRows");
+    const seen = new Set([...container.querySelectorAll("details")].map(el => el.dataset.agentId));
+    const expanded = new Set([...container.querySelectorAll("details[open]")].map(el => el.dataset.agentId));
+    const ru = settings.appLanguage === "ru";
+    const labels = ru ? { queued: "В очереди", working: "Выполняется", done: "Готово", error: "Ошибка", stopped: "Остановлен" } : { queued: "Queued", working: "Working", done: "Done", error: "Error", stopped: "Stopped" };
+    $("teamHeading").textContent = workers.some(row => ["working", "queued"].includes(row.status)) ? (ru ? "Работают сабагенты" : "Subagents working") : (ru ? "Работа сабагентов" : "Subagents finished");
+    container.innerHTML = workers.map(row => `<details class="team-row ${row.status}" data-agent-id="${escapeHtml(row.id)}" ${expanded.has(row.id) || !seen.has(row.id) ? "open" : ""}>
+      <summary><span>${escapeHtml(row.title)}</span><span>${labels[row.status]} · ${Math.round((row.elapsed || 0) / 1000)}s</span></summary>
+      <div class="agent-model">${escapeHtml(row.model)}</div><p>${escapeHtml(row.task || "")}</p><pre>${escapeHtml(row.output || "")}</pre></details>`).join("");
+  }
+
+  function localProgress(progress) {
+    const ru = settings.appLanguage === "ru";
+    const stages = ru ? { windows: "Скачиваются компоненты Windows", "windows-install": "Установка компонентов — подтверди запрос Windows", engine: "Скачивается движок", extracting: "Распаковка движка", model: "Скачивается модель", starting: "Проверка запуска", ready: "Готово! Можно писать в чат.", error: "Ошибка", cancelled: "Загрузка остановлена. Можно продолжить." } : { windows: "Downloading Windows components", "windows-install": "Installing components — accept the Windows prompt", engine: "Downloading engine", extracting: "Unpacking engine", model: "Downloading model", starting: "Checking startup", ready: "Ready! Start chatting.", error: "Error", cancelled: "Download paused. You can resume." };
+    const busy = ["windows", "windows-install", "engine", "extracting", "model", "starting"].includes(progress.stage);
+    $("localSetupProgress").hidden = !busy;
+    if (progress.total) $("localSetupProgress").value = progress.completed / progress.total * 100;
+    else $("localSetupProgress").removeAttribute("value");
+    $("localSetupStatus").textContent = (stages[progress.stage] || progress.stage) + (progress.total ? ` · ${Math.round(progress.completed / 1e6)} / ${Math.round(progress.total / 1e6)} MB` : "") + (progress.stage === "error" ? `: ${progress.error}` : "");
+    $("localSetupBtn").disabled = busy;
+    $("localCancelBtn").hidden = !busy || progress.stage === "windows-install";
+    $("installOllamaBtn").disabled = busy;
+  }
+  window.api?.onLocalProgress(localProgress);
+  $("localSetupBtn").addEventListener("click", async () => {
+    localProgress({ stage: "engine" });
+    try {
+      const result = await window.api.localSetup();
+      if (result.ok) { settings.localSetupCompleted = true; selectModel(result.model); await persist(); }
+      await checkOllama();
+    } catch (error) { localProgress({ stage: "error", error: error.message }); }
+  });
+  $("localCancelBtn").addEventListener("click", () => window.api.localCancel());
+  $("installOllamaBtn").addEventListener("click", async () => {
+    $("installOllamaBtn").disabled = true;
+    $("localSetupStatus").textContent = settings.appLanguage === "ru" ? "Устанавливается Ollama…" : "Installing Ollama…";
+    try {
+      const result = await window.api.ollamaInstall();
+      $("localSetupStatus").textContent = result.ok ? (settings.appLanguage === "ru" ? "Ollama готова. Выбери модель в каталоге." : "Ollama ready. Choose a model in the catalog.") : "Ollama installation failed. Retry or use Quick setup.";
+      await checkOllama();
+    } catch (error) { $("localSetupStatus").textContent = error.message; }
+    finally { $("installOllamaBtn").disabled = false; }
+  });
+  $("teamToggle").addEventListener("click", () => { settings.teamEnabled = !settings.teamEnabled; updateMusicalControls(); persist(); });
+  for (let i = 0; i < 2; i++) $("workerModel" + i).addEventListener("change", event => {
+    if (!Array.isArray(settings.workerModels)) settings.workerModels = [];
+    settings.workerModels[i] = event.target.value; persist();
+  });
 
   // ============================================================
   //  MODEL SELECTOR
@@ -1595,14 +1775,6 @@
 
   function renderModelDropdown() {
     modelDropdown.innerHTML = "";
-    if (!ollamaRunning) {
-      modelDropdown.innerHTML = `
-        <div class="model-empty">
-          ${statusDot.classList.contains("loading") ? "Ollama is installing or starting." : "Ollama is starting automatically."}<br>
-          <small>Please wait a few seconds.</small>
-        </div>`;
-      return;
-    }
     if (availableModels.length === 0) {
       modelDropdown.innerHTML = `
         <div class="model-empty">
@@ -1774,13 +1946,17 @@
   // ============================================================
   $("statusPill").addEventListener("click", async () => {
     statusDot.className = "status-dot loading";
-    await window.api.ollamaEnsure();
+    await Promise.all([window.api.ollamaEnsure(), window.api.localStart()]);
     await checkOllama();
   });
   toggleTabBtn?.addEventListener("click", () => {
     appEl?.classList.add("tab-collapsed");
     applyButtonTooltips();
   });
+  sideLogo?.addEventListener('mouseenter', () => {
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) $('sidebarLogoMotion')?.beginElement();
+  });
+  sideLogo?.addEventListener('mouseleave', () => $('sidebarLogoMotion')?.endElement());
   sideLogo?.addEventListener("click", () => {
     appEl?.classList.remove("tab-collapsed");
     applyButtonTooltips();
@@ -1789,6 +1965,37 @@
     progressDismissed = !progressDismissed;
     renderProgress();
   });
+  function closeLanguagePicker() {
+    $('languageToggle')?.setAttribute('aria-expanded', 'false');
+    languagePackList?.classList.remove('open');
+    if (languagePackList) languagePackList.inert = true;
+  }
+  $('languageToggle')?.addEventListener('click', () => {
+    const open = $('languageToggle').getAttribute('aria-expanded') !== 'true';
+    $('languageToggle').setAttribute('aria-expanded', String(open));
+    languagePackList.classList.toggle('open', open);
+    languagePackList.inert = !open;
+    if (open) languagePackList.querySelector('[aria-selected="true"]')?.focus();
+  });
+  languagePackList?.addEventListener('keydown', event => {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const options = [...languagePackList.querySelectorAll('button')];
+    let index = options.indexOf(document.activeElement);
+    index = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+    options[index]?.focus();
+  });
+  document.addEventListener('click', event => { if (!event.target.closest('.language-picker')) closeLanguagePicker(); });
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || !settingsModal.classList.contains('show')) return;
+    if (languagePackList.classList.contains('open')) { closeLanguagePicker(); $('languageToggle').focus(); }
+    else { settingsModal.classList.remove('show'); settingsBtn.focus(); }
+  });
+  settingsModal.querySelectorAll('[data-settings-tab]').forEach(button => button.addEventListener('click', () => {
+    closeLanguagePicker();
+    settingsModal.querySelectorAll('[data-settings-tab]').forEach(tab => tab.classList.toggle('active', tab === button));
+    settingsModal.querySelectorAll('[data-settings-panel]').forEach(panel => panel.hidden = panel.dataset.settingsPanel !== button.dataset.settingsTab);
+  }));
   settingsBtn?.addEventListener("click", () => {
     renderSettings();
     settingsModal?.classList.add("show");
@@ -1939,7 +2146,7 @@
     startNeuralProgress(mode, web);
     const waitingText = mode === "image"
       ? (settings.appLanguage === "ru" ? "\u0421\u043e\u0437\u0434\u0430\u044e \u0438\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435..." : "Creating image...")
-      : "NevoAI is thinking...";
+      : (settings.appLanguage === "ru" ? "Думаю…" : "Thinking…");
     thinkingEl = document.createElement("div");
     thinkingEl.className = "message assistant thinking-message";
     thinkingEl.innerHTML = `
@@ -2023,7 +2230,7 @@
     const label = thinkingEl.querySelector(".thinking-label");
     if (label) {
       label.className = "thinking-label thinking-shining-text";
-      label.textContent = "NevoAI is thinking...";
+      label.textContent = settings.appLanguage === "ru" ? "Думаю…" : "Thinking…";
       label.onclick = null;
       label.onkeydown = null;
       label.removeAttribute("role");
@@ -2075,13 +2282,13 @@
     const reasoning = thinkingEl.querySelector(".thinking-reasoning");
     const label = thinkingEl.querySelector(".thinking-stage-label");
     const time = thinkingEl.querySelector(".thinking-stage-time");
-    const nevoStatus = thinkingEl.querySelector(".thinking-inline");
+    const musicalStatus = thinkingEl.querySelector(".thinking-inline");
     if (reasoning) reasoning.classList.add("is-collapsed");
     if (label) label.textContent = "Thought";
     if (time) time.textContent = formatDuration(thinkingThoughtDurationMs);
-    if (reasoning && nevoStatus) {
-      reasoning.parentElement.insertBefore(nevoStatus, reasoning.nextSibling);
-      nevoStatus.classList.add("thinking-after-thought");
+    if (reasoning && musicalStatus) {
+      reasoning.parentElement.insertBefore(musicalStatus, reasoning.nextSibling);
+      musicalStatus.classList.add("thinking-after-thought");
     }
   }
 
@@ -2127,14 +2334,14 @@
       : (mode === "image" ? "Creating image" : "Thinking");
     if (logo) {
       logo.innerHTML = `
-        <img class="thinking-logo-ghost" src="resources/nevo-logo.png" alt="">
-        <img class="thinking-logo-line" src="resources/nevo-logo.png" alt="">
+        <img class="thinking-logo-ghost" src="resources/musical-logo.svg" alt="">
+        <img class="thinking-logo-line" src="resources/musical-logo.svg" alt="">
       `;
     }
     if (label) {
       label.textContent = mode === "image"
         ? (settings.appLanguage === "ru" ? "\u0421\u043e\u0437\u0434\u0430\u044e \u0438\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435..." : "Creating image...")
-        : "NevoAI is thinking...";
+        : (settings.appLanguage === "ru" ? "Думаю…" : "Thinking…");
     }
   }
 
@@ -2265,6 +2472,8 @@
     thinkingRenderFrame = 0;
     thinkingReasoningText = "";
     if (thinkingEl) {
+      const panel = $("teamPanel");
+      if (panel && thinkingEl.contains(panel)) { document.querySelector(".main-area").prepend(panel); panel.hidden = true; }
       thinkingEl.remove();
       thinkingEl = null;
     }
@@ -2404,7 +2613,7 @@
     if (settings.accessMode === "ask") {
       const decision = await requestChangeApproval(
         "python packages",
-        `Nevo needs to install Python packages so the app can run: ${packages.join(", ")}`
+        `Musical AI needs to install Python packages so the app can run: ${packages.join(", ")}`
       );
       if (decision === "deny") {
         addProgressItem(`Denied package install ${packages.join(", ")}`, "denied");
@@ -2487,7 +2696,7 @@
       const existing = data.groups.find(g => g.id === chat.groupId);
       return existing ? existing.folderName || existing.name : null;
     }
-    const groupName = "NevoProject";
+    const groupName = "MusicalProject";
     let folderName = groupName;
     if (window.api && window.api.ensureProjectFolder) {
       const folder = await window.api.ensureProjectFolder(groupName);
@@ -2520,7 +2729,7 @@
     }
     const needsApproval = fileAlreadyExists && settings.accessMode === "ask" && acceptedChangeChatId !== currentChatId;
     if (needsApproval) {
-      const decision = await requestChangeApproval(filePath, `Nevo wants to change an existing file: ${filePath}`);
+      const decision = await requestChangeApproval(filePath, `Musical AI wants to change an existing file: ${filePath}`);
       if (decision === "deny") {
         addProgressItem(`Denied edit ${filePath}`, "denied");
         upsertCodingPreview(Object.assign({}, lastCodeActivity, { state: "editing" }), `Denied: ${filePath}`);
@@ -2820,6 +3029,13 @@
     const body = document.createElement("div");
     body.className = "message-body";
 
+    if (role === "assistant" && msg.workMeta?.agents?.length) {
+      const trace = document.createElement("details");
+      trace.className = "team-panel agent-history";
+      trace.innerHTML = `<summary>${settings.appLanguage === "ru" ? "Работа сабагентов" : "Subagents finished"}</summary>` + msg.workMeta.agents.map(row => `<details class="team-row ${escapeHtml(row.status)}"><summary>${escapeHtml(row.title)} · ${formatDuration(row.elapsed)}</summary><p>${escapeHtml(row.task)}</p><pre>${escapeHtml(row.output)}</pre></details>`).join("");
+      body.appendChild(trace);
+    }
+
     if (role === "assistant" && msg.workMeta) {
       const workMeta = document.createElement("div");
       workMeta.className = "assistant-work-meta";
@@ -2947,7 +3163,7 @@
   //  SYSTEM PROMPT (общий ассистент, не только код)
   // ============================================================
   function buildSystemPrompt() {
-    const base = `\u0422\u044b ? Nevo, \u0434\u0440\u0443\u0436\u0435\u043b\u044e\u0431\u043d\u044b\u0439 \u0438 \u043f\u043e\u043b\u0435\u0437\u043d\u044b\u0439 AI-\u0430\u0441\u0441\u0438\u0441\u0442\u0435\u043d\u0442. \u0422\u044b \u043f\u043e\u043c\u043e\u0433\u0430\u0435\u0448\u044c \u043b\u044e\u0434\u044f\u043c \u0441 \u0440\u0430\u0437\u043d\u044b\u043c\u0438 \u0437\u0430\u0434\u0430\u0447\u0430\u043c\u0438: \u043e\u0442\u0432\u0435\u0442\u0430\u043c\u0438 \u043d\u0430 \u0432\u043e\u043f\u0440\u043e\u0441\u044b, \u043e\u0431\u044a\u044f\u0441\u043d\u0435\u043d\u0438\u044f\u043c\u0438, \u043f\u0438\u0441\u044c\u043c\u043e\u043c, \u043f\u0435\u0440\u0435\u0432\u043e\u0434\u0430\u043c\u0438, \u0438\u0434\u0435\u044f\u043c\u0438, \u043d\u0430\u0443\u043a\u043e\u0439, \u0443\u0447\u0451\u0431\u043e\u0439, \u0431\u044b\u0442\u043e\u0432\u044b\u043c\u0438 \u0434\u0435\u043b\u0430\u043c\u0438 \u0438 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435\u043c. \u041d\u0435 \u0441\u0447\u0438\u0442\u0430\u0439, \u0447\u0442\u043e \u043b\u044e\u0431\u0430\u044f \u043f\u0440\u043e\u0441\u044c\u0431\u0430 \u00ab\u0441\u043e\u0437\u0434\u0430\u0439\u00bb \u043e\u0437\u043d\u0430\u0447\u0430\u0435\u0442 \u043a\u043e\u0434. \u041f\u0438\u0448\u0438 \u043a\u043e\u0434 \u0442\u043e\u043b\u044c\u043a\u043e \u0435\u0441\u043b\u0438 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c \u044f\u0432\u043d\u043e \u043f\u0440\u043e\u0441\u0438\u0442 \u043a\u043e\u0434, \u0441\u0430\u0439\u0442, \u0438\u043d\u0442\u0435\u0440\u0444\u0435\u0439\u0441, \u0438\u0433\u0440\u0443 \u0438\u043b\u0438 \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435. \u041e\u0442\u0432\u0435\u0447\u0430\u0439 \u0435\u0441\u0442\u0435\u0441\u0442\u0432\u0435\u043d\u043d\u043e \u0438 \u043f\u043e\u043d\u044f\u0442\u043d\u043e. \u0412\u0441\u0435\u0433\u0434\u0430 \u043e\u0442\u0432\u0435\u0447\u0430\u0439 \u043d\u0430 \u044f\u0437\u044b\u043a\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f.`;
+    const base = `\u0422\u044b ? Musical AI, \u0434\u0440\u0443\u0436\u0435\u043b\u044e\u0431\u043d\u044b\u0439 \u0438 \u043f\u043e\u043b\u0435\u0437\u043d\u044b\u0439 AI-\u0430\u0441\u0441\u0438\u0441\u0442\u0435\u043d\u0442. \u0422\u044b \u043f\u043e\u043c\u043e\u0433\u0430\u0435\u0448\u044c \u043b\u044e\u0434\u044f\u043c \u0441 \u0440\u0430\u0437\u043d\u044b\u043c\u0438 \u0437\u0430\u0434\u0430\u0447\u0430\u043c\u0438: \u043e\u0442\u0432\u0435\u0442\u0430\u043c\u0438 \u043d\u0430 \u0432\u043e\u043f\u0440\u043e\u0441\u044b, \u043e\u0431\u044a\u044f\u0441\u043d\u0435\u043d\u0438\u044f\u043c\u0438, \u043f\u0438\u0441\u044c\u043c\u043e\u043c, \u043f\u0435\u0440\u0435\u0432\u043e\u0434\u0430\u043c\u0438, \u0438\u0434\u0435\u044f\u043c\u0438, \u043d\u0430\u0443\u043a\u043e\u0439, \u0443\u0447\u0451\u0431\u043e\u0439, \u0431\u044b\u0442\u043e\u0432\u044b\u043c\u0438 \u0434\u0435\u043b\u0430\u043c\u0438 \u0438 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435\u043c. \u041d\u0435 \u0441\u0447\u0438\u0442\u0430\u0439, \u0447\u0442\u043e \u043b\u044e\u0431\u0430\u044f \u043f\u0440\u043e\u0441\u044c\u0431\u0430 \u00ab\u0441\u043e\u0437\u0434\u0430\u0439\u00bb \u043e\u0437\u043d\u0430\u0447\u0430\u0435\u0442 \u043a\u043e\u0434. \u041f\u0438\u0448\u0438 \u043a\u043e\u0434 \u0442\u043e\u043b\u044c\u043a\u043e \u0435\u0441\u043b\u0438 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c \u044f\u0432\u043d\u043e \u043f\u0440\u043e\u0441\u0438\u0442 \u043a\u043e\u0434, \u0441\u0430\u0439\u0442, \u0438\u043d\u0442\u0435\u0440\u0444\u0435\u0439\u0441, \u0438\u0433\u0440\u0443 \u0438\u043b\u0438 \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435. \u041e\u0442\u0432\u0435\u0447\u0430\u0439 \u0435\u0441\u0442\u0435\u0441\u0442\u0432\u0435\u043d\u043d\u043e \u0438 \u043f\u043e\u043d\u044f\u0442\u043d\u043e. \u0412\u0441\u0435\u0433\u0434\u0430 \u043e\u0442\u0432\u0435\u0447\u0430\u0439 \u043d\u0430 \u044f\u0437\u044b\u043a\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f.`;
 
     const think = settings.thinkLevel;
     let thinkHint = "";
@@ -2972,7 +3188,7 @@
     if (settings.accessMode === "ask") {
       const decision = await requestChangeApproval(
         "package.json",
-        `Nevo needs to install Node packages so the app can run: ${packages.join(", ")}`
+        `Musical AI needs to install Node packages so the app can run: ${packages.join(", ")}`
       );
       if (decision === "deny") {
         upsertCodingPreview(Object.assign({}, activity, { state: "editing" }), `Dependency install denied: ${packages.join(", ")}`);
@@ -3067,8 +3283,8 @@
     }
     if (!ollamaRunning) {
       return settings.appLanguage === "ru"
-        ? "Ollama не запущена. Запусти Ollama и нажми на индикатор статуса в Nevo."
-        : "Ollama is not running. Start Ollama and click the status indicator in Nevo.";
+        ? "Ollama не запущена. Запусти Ollama и нажми на индикатор статуса в Musical AI."
+        : "Ollama is not running. Start Ollama and click the status indicator in Musical AI.";
     }
     if (!requestModel || !availableModels.some(model => model.name === requestModel)) {
       return settings.appLanguage === "ru"
@@ -3108,7 +3324,7 @@
     }
 
     const apiMessages = [
-      { role: "system", content: buildSystemPrompt() },
+      { role: "system", content: buildSystemPrompt() + (activeSkillContext ? `\n\nUser-enabled skills (apply where relevant):\n${activeSkillContext}` : "") },
       ...contextMsgs,
       { role: "user", content: currentUserContent || (userImages && userImages.length ? "Describe this image." : ""), images: (userImages && userImages.length ? userImages : undefined) }
     ];
@@ -3124,14 +3340,29 @@
       reqBody.think = settings.thinkLevel !== "none";
     }
 
-    abortController = new AbortController();
-
+    const requestController = new AbortController();
+    abortController = requestController;
+    renderTeam([]);
     try {
-      const response = await fetch("http://127.0.0.1:11434/api/chat", {
+      if (settings.teamEnabled && !userImages?.length) {
+        const workers = [0, 1].map(i => availableModels.some(m => m.name === settings.workerModels?.[i]) ? settings.workerModels[i] : requestModel);
+        const embeddedOnly = [requestModel, ...workers].every(name => name.startsWith("musical:"));
+        const team = await MusicalAI.runTeam({
+          messages: apiMessages, model: requestModel, workerModels: workers,
+          concurrency: new Set(workers.filter(name => name.startsWith("musical:"))).size > 1 ? 1 : embeddedOnly ? localRuntimeState.slots || 1 : (navigator.hardwareConcurrency >= 8 ? 2 : 1),
+          signal: requestController.signal,
+          onUpdate: rows => { if (generationId === activeGenerationId) renderTeam(rows); }
+        });
+        if (generationId !== activeGenerationId) return "_STOPPED_";
+        if (team.context) apiMessages.push({ role: "user", content: team.context });
+        renderTeam([...team.rows, { id: "synthesis", title: settings.appLanguage === "ru" ? "Общий ответ" : "Final answer", model: requestModel, status: "working", elapsed: 0, started: Date.now() }]);
+      }
+      requestController.signal.throwIfAborted();
+      const response = await MusicalAI.chatFetch("http://127.0.0.1:11434/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(reqBody),
-        signal: abortController.signal
+        signal: requestController.signal
       });
 
       if (!response.ok) {
@@ -3196,11 +3427,11 @@
         collapseThinkingToThought();
         const fallbackBody = Object.assign({}, reqBody, { stream: false });
         if (Object.prototype.hasOwnProperty.call(fallbackBody, "think")) fallbackBody.think = false;
-        const fallbackResponse = await fetch("http://127.0.0.1:11434/api/chat", {
+        const fallbackResponse = await MusicalAI.chatFetch("http://127.0.0.1:11434/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(fallbackBody),
-          signal: abortController.signal
+          signal: requestController.signal
         });
         if (fallbackResponse.ok) {
           const fallback = await fallbackResponse.json();
@@ -3231,12 +3462,14 @@
         addProgressItem("Finished answer");
       }
       finishNeuralProgress();
+      renderTeam(teamRows.map(row => row.id === "synthesis" ? { ...row, status: "done", elapsed: Date.now() - row.started, output: fullText } : row));
       return fullText || "(пустой ответ)";
     } catch (err) {
-      if (err.name === "AbortError") return "_STOPPED_";
+      if (generationId === activeGenerationId) renderTeam(teamRows.map(row => row.status === "working" || row.status === "queued" ? { ...row, status: requestController.signal.aborted ? "stopped" : "error", output: err.message } : row));
+      if (requestController.signal.aborted || err.name === "AbortError") return "_STOPPED_";
       return `Ошибка: ${err.message}`;
     } finally {
-      abortController = null;
+      if (abortController === requestController) abortController = null;
     }
   }
 
@@ -3789,8 +4022,8 @@
       const decision = await requestChangeApproval(
         "Flux Python packages",
         settings.appLanguage === "ru"
-          ? `Nevo нужно установить Python-пакеты для локальной генерации Flux: ${FLUX_PYTHON_PACKAGES.join(", ")}`
-          : `Nevo needs to install Python packages for local Flux image generation: ${FLUX_PYTHON_PACKAGES.join(", ")}`
+          ? `Musical AI нужно установить Python-пакеты для локальной генерации Flux: ${FLUX_PYTHON_PACKAGES.join(", ")}`
+          : `Musical AI needs to install Python packages for local Flux image generation: ${FLUX_PYTHON_PACKAGES.join(", ")}`
       );
       if (decision === "deny") return false;
     }
@@ -3800,7 +4033,7 @@
       : `Installing Flux packages: ${FLUX_PYTHON_PACKAGES.join(", ")}`;
     const progressId = addProgressItem(title, "pending");
     appendTerminalLine(`py -m pip install ${FLUX_PYTHON_PACKAGES.join(" ")}`);
-    const result = await window.api.installPythonPackages(FLUX_PYTHON_PACKAGES, "NevoProject");
+    const result = await window.api.installPythonPackages(FLUX_PYTHON_PACKAGES, "MusicalProject");
     if (result?.ok) {
       updateProgressItem(progressId, "done", settings.appLanguage === "ru"
         ? "Flux-пакеты установлены"
@@ -4110,7 +4343,7 @@
         role: "assistant",
         content: reply,
         animateOnRender: true,
-        workMeta: { thoughtDurationMs, totalDurationMs }
+        workMeta: { thoughtDurationMs, totalDurationMs, agents: teamRows.filter(row => row.id.startsWith("worker-")).map(row => ({ ...row })) }
       };
       if (lastCodeActivity) {
         assistantMsg.codeActivity = Object.assign({}, lastCodeActivity, { state: "edited" });
@@ -4127,6 +4360,7 @@
   stopBtn.addEventListener("click", () => {
     activeGenerationId = ++generationSerial;
     if (abortController) abortController.abort();
+    renderTeam(teamRows.map(row => ["working", "queued"].includes(row.status) ? { ...row, status: "stopped", elapsed: row.started ? Date.now() - row.started : 0 } : row));
     isGenerating = false;
     updateHomeMode();
     removeThinkingMessage();
@@ -4452,7 +4686,7 @@
   });
 
   function modelFamilyName(model) {
-    const name = model.name.toLowerCase();
+    const name = model.name.toLowerCase().replace(/^musical:/, "");
     if (name.startsWith("llama") || name.includes("codellama")) return "Llama";
     if (name.startsWith("qwen")) return "Qwen";
     if (name.startsWith("gemma")) return "Gemma";
@@ -4605,19 +4839,25 @@
       return;
     }
 
-    if (!ollamaRunning) {
-      const warn = document.createElement("div");
-      warn.className = "model-empty";
-      warn.innerHTML = `${statusDot.classList.contains("loading") ? t("ollamaInstalling") : t("ollamaStarting")}<br><small>${t("ollamaWait")}</small>`;
-      body.appendChild(warn);
-      return;
-    }
-
     const installedNames = availableModels.map(m => m.name);
     const lower = (filter || "").toLowerCase();
-    const allModels = [...MODEL_CATALOG];
+    const nativeCatalog = settings.catalogBackend !== "ollama";
+    const backendBar = document.createElement("div");
+    backendBar.className = "catalog-backends";
+    backendBar.style.gridColumn = "1 / -1";
+    backendBar.innerHTML = `<button class="catalog-btn" data-backend="local" aria-pressed="${nativeCatalog}">${settings.appLanguage === "ru" ? "Без Ollama" : "Without Ollama"}</button><button class="catalog-btn" data-backend="ollama" aria-pressed="${!nativeCatalog}">Ollama</button><p>${nativeCatalog ? (settings.appLanguage === "ru" ? "Текстовые модели для встроенного движка. Ollama устанавливать не нужно." : "Text models for the built-in engine. No Ollama installation needed.") : (settings.appLanguage === "ru" ? "Эти модели используют Ollama." : "These models use Ollama.")}</p>`;
+    backendBar.querySelectorAll("button").forEach(button => button.addEventListener("click", () => { settings.catalogBackend = button.dataset.backend; persist(); renderModelsCatalog(filter); }));
+    body.appendChild(backendBar);
+    const extras = [
+      { name: "qwen2.5:0.5b", size: "0.40 GB", category: "Qwen", desc: "Qwen 2.5 0.5B" },
+      { name: "qwen2.5:1.5b", size: "1.12 GB", category: "Qwen", desc: "Qwen 2.5 1.5B" },
+      { name: "qwen2.5:3b", size: "1.9 GB", category: "Qwen", desc: "Qwen 2.5 3B" },
+      { name: "qwen2.5-coder:1.5b", size: "1.0 GB", category: "Code", desc: "Qwen 2.5 Coder 1.5B" },
+      { name: "qwen2.5-coder:3b", size: "1.9 GB", category: "Code", desc: "Qwen 2.5 Coder 3B" }
+    ];
+    const allModels = nativeCatalog ? [...extras, ...MODEL_CATALOG.filter(model => !model.vision && /^(qwen3:|qwen2\.5|llama3\.[12]:|deepseek-r1:|deepseek-coder:|mistral:)/.test(model.name))].map(model => ({ ...model, name: model.name === "qwen2.5:1.5b" ? "musical:qwen2.5-1.5b" : `musical:${model.name}` })) : [...MODEL_CATALOG];
     availableModels
-      .filter(m => !MODEL_CATALOG.find(c => c.name === m.name))
+      .filter(m => m.name.startsWith("musical:") === nativeCatalog && !allModels.find(c => c.name === m.name))
       .forEach(m => allModels.push({
         name: m.name,
         desc: "Installed locally",
@@ -4693,16 +4933,18 @@
           actionHtml = isActive
             ? `<button class="catalog-btn" disabled>${escapeHtml(t("selected"))}</button>`
             : `<div class="catalog-actions"><button class="catalog-btn primary" data-action="select" data-model="${m.name}">${escapeHtml(t("choose"))}</button><button class="catalog-btn danger" data-action="delete" data-model="${m.name}" title="${escapeHtml(t("deleteModel"))}" aria-label="${escapeHtml(t("deleteModel"))}" data-tooltip="${escapeHtml(t("deleteModel"))}">\u00d7</button></div>`;
+          if (m.name.startsWith("musical:") && !isActive) actionHtml = `<button class="catalog-btn primary" data-action="select" data-model="${m.name}">${escapeHtml(t("choose"))}</button>`;
         } else {
           actionHtml = `<button class="catalog-btn primary" data-action="pull" data-model="${m.name}">${escapeHtml(t("download"))}</button>`;
         }
 
         const item = document.createElement("div");
         item.className = "catalog-item compact";
+        item.dataset.model = m.name;
         item.style.setProperty("--item-index", String(Math.min(index, 6)));
         item.innerHTML = `
           <div class="catalog-item-info">
-            <div class="catalog-item-name">${escapeHtml(m.name)}</div>
+            <div class="catalog-item-name" title="${escapeHtml(m.name)}">${escapeHtml(m.name.replace(/^musical:/, ""))}</div>
             <div class="catalog-item-desc">${escapeHtml(m.desc || "")}</div>
             <div class="catalog-item-meta">${statusHtml}<span class="catalog-size">${escapeHtml(m.size || "")}</span></div>
           </div>
@@ -4750,7 +4992,9 @@
   async function pullModel(modelName, filter) {
     pullingModels[modelName] = 0;
     renderModelsCatalog(filter);
-    const result = await window.api.pullModel(modelName);
+    let result;
+    try { result = modelName.startsWith("musical:") ? await window.api.localPull(modelName) : await window.api.pullModel(modelName); }
+    catch (error) { result = { ok: false, error: error.message }; }
     delete pullingModels[modelName];
     await checkOllama();
     if (result.ok) {
@@ -4780,13 +5024,13 @@
 
   if (window.api && window.api.onPullProgress) {
     window.api.onPullProgress((d) => {
-      if (d.model && d.percent !== undefined) {
+      if (d.model && d.percent !== undefined && Object.prototype.hasOwnProperty.call(pullingModels, d.model)) {
         pullingModels[d.model] = d.percent;
         const fills = document.querySelectorAll(".catalog-progress-fill");
         const items = document.querySelectorAll(".catalog-item");
         items.forEach(item => {
           const name = item.querySelector(".catalog-item-name");
-          if (name && name.textContent.includes(d.model)) {
+          if (name && item.dataset.model === d.model) {
             const fill = item.querySelector(".catalog-progress-fill");
             const pctText = item.querySelector(".catalog-progress + span");
             if (fill) fill.style.width = d.percent + "%";
@@ -4832,6 +5076,7 @@
   // ============================================================
   async function init() {
     await loadData();
+    if (window.api?.skillsList) renderSkills(await window.api.skillsList());
     await syncProjectFolders();
     setThinkLevel(settings.thinkLevel || "medium");
     setAccessMode(settings.accessMode || "ask");

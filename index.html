@@ -3,18 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nevo</title>
+<title>Musical AI</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="musical.css">
 </head>
 <body>
+<header class="window-titlebar" id="windowTitlebar">
+  <span class="window-brand">Musical AI</span>
+  <div class="window-controls">
+    <button type="button" data-window="minimize" aria-label="Minimize"><svg viewBox="0 0 12 12"><path d="M1 6h10"/></svg></button>
+    <button type="button" data-window="maximize" aria-label="Maximize or restore"><svg viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8"/></svg></button>
+    <button type="button" data-window="close" aria-label="Close"><svg viewBox="0 0 12 12"><path d="m2 2 8 8M10 2l-8 8"/></svg></button>
+  </div>
+</header>
 
 <div class="app">
 
   <!-- Sidebar / tab -->
   <aside class="sidebar" id="sidebar">
     <div class="side-header">
-      <div class="side-logo" aria-label="Nevo">
-        <img class="nevo-mark-img" src="resources/nevo-logo.png" alt="" aria-hidden="true">
+      <div class="side-logo" aria-label="Musical AI">
+        <svg class="musical-mark-img" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M40 141 L59 141 L82 73 L128 185 L174 73 L197 141 L216 141" fill="none" stroke="#bdbdbd" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"><animate id="sidebarLogoMotion" begin="indefinite" attributeName="d" values="M40 141 L59 141 L82 73 L128 185 L174 73 L197 141 L216 141;M40 141 L59 141 L82 155 L128 202 L174 73 L197 141 L216 141;M40 141 L59 141 L82 73 L128 185 L174 73 L197 141 L216 141;M40 141 L59 141 L82 182 L128 65 L174 182 L197 141 L216 141;M40 141 L59 141 L82 73 L128 185 L174 73 L197 141 L216 141" dur="3.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.25;.5;.75;1" keySplines=".4 0 .2 1;.4 0 .2 1;.4 0 .2 1;.4 0 .2 1"/></path></svg>
+        <span class="musical-wordmark">Musical<span>AI</span></span>
       </div>
       <div class="side-actions">
         <div class="status-pill" id="statusPill" title="Ollama status">
@@ -70,7 +80,7 @@
   <!-- Main Area -->
   <main class="main-area">
     <div class="app-toolbar">
-      <div class="toolbar-brand" aria-hidden="true"><span class="toolbar-n">N</span></div>
+      <div class="toolbar-brand" aria-hidden="true"><span class="toolbar-n">M</span></div>
       <div class="toolbar-actions">
         <button class="toolbar-btn" id="toolbarExplorerBtn" title="Explorer" aria-label="Explorer" data-tooltip="Explorer">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
@@ -89,6 +99,10 @@
         </button>
       </div>
     </div>
+    <details class="team-panel" id="teamPanel" hidden open>
+      <summary id="teamHeading">Agent team</summary>
+      <div id="teamRows" aria-live="polite"></div>
+    </details>
     <div class="progress-card" id="progressCard">
       <div class="progress-head">
         <span>Progress</span>
@@ -111,6 +125,13 @@
         <h1 class="welcome-title" id="welcomeTitle">Build the thing you keep imagining.</h1>
         <p class="welcome-sub">Local AI assistant. Runs on Ollama, no API keys. Ask about code, text, ideas, translations, or anything else.</p>
         <p class="welcome-hint" id="welcomeHint">Choose a model to start.</p>
+        <div class="local-setup" id="localSetupCard" hidden>
+          <strong id="localSetupTitle">Ready in one setup</strong>
+          <p id="localSetupDescription">Compact engine + Qwen 1.5B · 1.14 GB download · no Ollama needed</p>
+          <div class="local-setup-actions"><button id="localSetupBtn" type="button">Quick setup</button><button id="localCancelBtn" type="button" hidden>Cancel</button><button id="installOllamaBtn" type="button">Install Ollama instead</button></div>
+          <progress id="localSetupProgress" aria-label="Model download progress" max="100" value="0" hidden></progress>
+          <p id="localSetupStatus" role="status"></p>
+        </div>
         <div class="quick-actions">
           <button class="quick-btn" data-prompt="Hi! Tell me about yourself and how you can help">Intro</button>
           <button class="quick-btn" data-prompt="Explain in simple words how neural networks work">Explain topic</button>
@@ -152,7 +173,7 @@
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
             <input type="file" id="fileInput" accept="image/*,.txt,.md,.json,.js,.ts,.py,.html,.css,.java,.c,.cpp,.rs,.go" multiple style="display:none">
-            <textarea id="userInput" rows="1" placeholder="Ask Nevo anything..." autofocus></textarea>
+            <textarea id="userInput" rows="1" placeholder="Ask Musical AI anything..." autofocus></textarea>
             <button class="composer-send" id="sendBtn" disabled title="Send (Enter)">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
             </button>
@@ -174,6 +195,7 @@
           </div>
 
           <div class="composer-right">
+            <button type="button" class="team-toggle" id="teamToggle" aria-pressed="true">Agents · Auto</button>
             <div class="access-selector" id="accessSelector">
               <button class="access-btn" id="accessBtn" title="Access mode">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
@@ -222,7 +244,7 @@
       </div>
       <aside class="side-panel" id="sidePanel">
         <div class="panel-header">
-          <span>Nevo actions</span>
+          <span>Musical AI actions</span>
           <button class="panel-close" id="closePanelBtn" title="Close panel" aria-label="Close panel" data-tooltip="Close panel">&times;</button>
         </div>
         <div class="panel-progress">
@@ -245,8 +267,9 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
     </div>
+    <nav class="settings-nav" aria-label="Settings sections"><button type="button" data-settings-tab="general" class="active">General</button><button type="button" data-settings-tab="models">Models</button><button type="button" data-settings-tab="skills">Skills</button><button type="button" data-settings-tab="discord">Discord Activity</button></nav>
     <div class="modal-body settings-body">
-      <section class="settings-section">
+      <section class="settings-section" data-settings-panel="general">
         <div>
           <div class="settings-title">Theme</div>
           <div class="settings-desc">Choose the visual theme.</div>
@@ -256,7 +279,7 @@
           <button type="button" data-theme="light">Light</button>
         </div>
       </section>
-      <section class="settings-section">
+      <section class="settings-section" data-settings-panel="models" hidden>
         <div>
           <div class="settings-title">Compute mode</div>
           <div class="settings-desc">Choose how local models should run.</div>
@@ -267,10 +290,33 @@
           <button type="button" data-compute="cpu">CPU</button>
         </div>
       </section>
-      <section class="settings-block">
+      <section class="settings-block settings-language" data-settings-panel="general">
         <div class="settings-title">Language packs</div>
         <div class="settings-desc">Download only the interface languages you want.</div>
-        <div class="language-pack-list" id="languagePackList"></div>
+        <div class="language-picker"><button type="button" id="languageToggle" aria-haspopup="listbox" aria-expanded="false" aria-controls="languagePackList"><span id="languageValue"></span><span class="language-chevron">&#8964;</span></button><div class="language-pack-list" id="languagePackList" role="listbox" aria-label="Language" inert></div></div>
+      </section>
+      <section class="settings-block agent-settings" data-settings-panel="models" hidden>
+        <strong id="agentSettingsTitle">Subagent models</strong>
+        <p id="agentSettingsHint">Auto shares the main model.</p>
+        <label>Agent 1 <select id="workerModel0"></select></label>
+        <label>Agent 2 <select id="workerModel1"></select></label>
+      </section>
+      <section class="settings-block discord-settings" data-settings-panel="discord" hidden>
+        <div class="discord-heading"><div><h3>Discord Activity</h3><p id="discordDescription"></p></div><button id="discordToggle" class="activity-switch" type="button" role="switch" aria-checked="false" aria-label="Discord Activity"><span></span></button></div>
+        <p id="discordStatus" role="status"></p>
+        <h4>Custom image or GIF</h4>
+        <button id="discordAddImage" type="button" class="activity-image-add" aria-label="Add image or GIF"><img id="discordImagePreview" alt="Activity image preview" hidden><span id="discordImagePlaceholder"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect x="4" y="4" width="24" height="24" rx="5"/><circle cx="12" cy="12" r="2"/><path d="m5 24 8-8 5 5 4-5 6 7"/></svg><span>Add</span></span></button>
+        <p id="discordImageSize">PNG, JPG, WebP, GIF</p><p id="discordImageWarning" role="status"></p>
+        <button id="discordExportImage" class="catalog-btn" type="button" hidden>Save prepared image</button>
+        <label class="discord-field"><span id="discordImageLinkLabel">Image URL or Discord asset name</span><input id="discordImageUrl" type="text" placeholder="https://.../image.gif" maxlength="2048"></label>
+        <p id="discordImageHelp"></p>
+      </section>
+      <section class="settings-block app-skills" data-settings-panel="skills" hidden>
+        <strong>Skills</strong>
+        <p id="skillsHint">Import Markdown instructions and enable them for your next requests.</p>
+        <button class="catalog-btn" id="importSkillBtn" type="button">Import .md</button>
+        <button class="catalog-btn" id="skillsFolderBtn" type="button">Open folder</button>
+        <div id="skillsList"></div><p id="skillsError" role="status"></p>
       </section>
     </div>
   </div>
@@ -323,7 +369,7 @@
       </button>
     </div>
     <div class="modal-body">
-      <p class="approval-text" id="approvalText">Nevo wants to edit a file.</p>
+      <p class="approval-text" id="approvalText">Musical AI wants to edit a file.</p>
       <button class="catalog-btn primary approval-action" id="approvalAcceptBtn">Accept</button>
       <button class="catalog-btn approval-action" id="approvalAcceptChatBtn">Accept in this chat</button>
       <button class="catalog-btn danger approval-action" id="approvalDenyBtn">Denied</button>
@@ -344,6 +390,7 @@
   </div>
 </div>
 
+<script src="musical-ai.js"></script>
 <script src="renderer.js"></script>
 </body>
 </html>

@@ -1,28 +1,28 @@
-﻿/* ============================================
-   Nevo chat-first assistant
+/* ============================================
+   Musical AI chat-first assistant
    ============================================ */
 
 :root {
-  --bg-darkest: #191919;
-  --bg-activity: #202020;
-  --bg-sidebar: #252525;
-  --bg-main: #202020;
-  --bg-surface: #2b2b2b;
-  --bg-hover: #363636;
-  --bg-active: #424242;
-  --bg-input: #2f2f2f;
-  --bg-user-msg: #151515;
+  --bg-darkest: #10111b;
+  --bg-activity: #141622;
+  --bg-sidebar: #171926;
+  --bg-main: #141622;
+  --bg-surface: #1a1c2d;
+  --bg-hover: #292c43;
+  --bg-active: #363a56;
+  --bg-input: #202338;
+  --bg-user-msg: #171a2b;
 
-  --border: #383838;
-  --border-light: #484848;
+  --border: #30344b;
+  --border-light: #454b68;
 
   --text-primary: #e6e6e6;
   --text-secondary: #b8b8b8;
   --text-muted: #858585;
   --text-bright: #ffffff;
 
-  --accent: #ff5a36;
-  --green: #4ade80;
+  --accent: #a99cff;
+  --green: #70dfc0;
   --red: #ef4444;
   --yellow: #facc15;
   --blue: #60a5fa;
@@ -53,7 +53,7 @@ body.theme-light {
   --text-secondary: #555555;
   --text-muted: #8a8a8a;
   --text-bright: #000000;
-  --accent: #ff5a36;
+  --accent: #a99cff;
   --scrollbar-track: #e6e6e6;
   --scrollbar-thumb: #c7c7c7;
   --scrollbar-thumb-hover: #adadad;
@@ -121,20 +121,20 @@ html, body {
   padding-right: 4px;
 }
 .logo-n-big { font-size: 72px; }
-.nevo-mark {
+.musical-mark {
   width: 30px;
   height: 24px;
   display: block;
   overflow: visible;
 }
-.nevo-mark path {
+.musical-mark path {
   fill: none;
   stroke: var(--accent);
   stroke-width: 7;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.nevo-mark-img {
+.musical-mark-img {
   width: 32px;
   height: 32px;
   display: block;
@@ -817,7 +817,7 @@ html, body {
   transition: border-color 0.12s, background 0.12s;
 }
 .panel-code-card:hover {
-  border-color: rgba(255, 90, 54, 0.55);
+  border-color: rgba(169, 156, 255, 0.55);
   background: var(--bg-hover);
 }
 .panel-code-card .code-activity {
@@ -892,7 +892,7 @@ html, body {
 .panel-file-tab.active {
   background: var(--bg-surface);
   color: var(--text-primary);
-  border-color: rgba(255, 90, 54, 0.45);
+  border-color: rgba(169, 156, 255, 0.45);
 }
 .panel-file-tab span {
   overflow: hidden;
@@ -1326,7 +1326,7 @@ body.theme-light .thinking-reasoning-text { color: #777777; }
   height: 100%;
   object-fit: contain;
   clip-path: inset(0 0 100% 0);
-  filter: drop-shadow(0 0 5px rgba(255, 90, 54, 0.46));
+  filter: drop-shadow(0 0 5px rgba(169, 156, 255, 0.46));
   animation: thinkingLogoDraw 1.85s cubic-bezier(.2,.82,.18,1) infinite;
 }
 .thinking-favicon {
@@ -1441,7 +1441,7 @@ body.theme-light .thinking-reasoning-text { color: #777777; }
   outline: none;
 }
 .code-activity-wrap:focus-visible {
-  box-shadow: 0 0 0 2px rgba(255, 90, 54, 0.35);
+  box-shadow: 0 0 0 2px rgba(169, 156, 255, 0.35);
 }
 .code-activity {
   display: inline-flex;
@@ -1504,7 +1504,7 @@ body.theme-light .thinking-reasoning-text { color: #777777; }
   font-weight: 700;
   display: inline-block;
 }
-.code-lines.added { color: #4ade80; }
+.code-lines.added { color: #70dfc0; }
 .code-lines.removed { color: #f87171; }
 .code-lines.bump { animation: lineBump 0.22s ease; }
 @keyframes lineBump {
@@ -1596,7 +1596,7 @@ body.theme-light .thinking-reasoning-text { color: #777777; }
   width: 4px;
   height: 4px;
   border-radius: 999px;
-  background: rgba(255, 90, 54, 0.35);
+  background: rgba(169, 156, 255, 0.35);
   transform: scale(calc(0.5 + (var(--i) % 13) * 0.04));
   animation: imageDotPulse 2.4s ease-in-out infinite;
   animation-delay: calc(((var(--i) * 7) % 130) * 18ms);

@@ -1,19 +1,38 @@
 ﻿const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
+const { dialog } = require('electron');
 const fs = require('fs');
 const os = require('os');
 const { spawn, execSync, exec } = require('child_process');
 const { getFluxStatus, downloadFluxVariant, runFluxGenerate } = require('./flux-backend');
+const { createLocalRuntime } = require('./local-runtime');
 
 // ============================================================
-//  Nevo data folders
+//  Musical AI data folders
 // ============================================================
-const LEGACY_DATA_DIR = path.join(os.homedir(), `.ne${'bula'}-data`);
-const DATA_DIR = path.join(os.homedir(), '.nevo-data');
-const LEGACY_PROJECTS_DIR = path.join(os.homedir(), `Ne${'bula'}Project`);
-const PROJECTS_DIR = path.join(os.homedir(), 'NevoProject');
+const { initializeStorage } = require('./storage-migration');
+const { dataDir: DATA_DIR, projectsDir: PROJECTS_DIR } = initializeStorage(os.homedir());
 const CHATS_FILE = path.join(DATA_DIR, 'data.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+const discordActivity = require('./discord-activity').createDiscordActivity();
+const discordMedia = require('./discord-media');
+const DISCORD_MEDIA_DIR = path.join(DATA_DIR, 'discord-media');
+ipcMain.handle('discord:status', () => discordActivity.status());
+ipcMain.handle('discord:media', () => discordMedia.readMedia(DISCORD_MEDIA_DIR));
+ipcMain.handle('discord:import', async event => {
+  const result = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender), { title: 'Activity image', properties: ['openFile'], filters: [{ name: 'Image or GIF', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'] }] });
+  if (result.canceled) return { canceled: true };
+  try { return { media: await discordMedia.prepareMedia(result.filePaths[0], DISCORD_MEDIA_DIR) }; }
+  catch (error) { return { error: error.message }; }
+});
+ipcMain.handle('discord:export', async event => {
+  const media = await discordMedia.readMedia(DISCORD_MEDIA_DIR);
+  if (!media) return { canceled: true };
+  const result = await dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender), { defaultPath: media.filename });
+  if (result.canceled) return { canceled: true };
+  try { await fs.promises.copyFile(path.join(DISCORD_MEDIA_DIR, media.filename), result.filePath); return { ok: true }; }
+  catch (error) { return { error: error.message }; }
+});
 const OLLAMA_WINDOWS_INSTALL_URL = 'https://ollama.com/install.ps1';
 const OLLAMA_LINUX_INSTALL_URL = 'https://ollama.com/install.sh';
 const OLLAMA_HOST = 'http://127.0.0.1:11434';
@@ -22,16 +41,17 @@ const ELECTRON_CACHE_DIR = path.join(DATA_DIR, 'cache');
 const ELECTRON_GPU_CACHE_DIR = path.join(DATA_DIR, 'gpu-cache');
 const FLUX_MODELS_DIR = path.join(DATA_DIR, 'models', 'flux');
 const FLUX_OUTPUT_DIR = path.join(DATA_DIR, 'generated-images');
+const localRuntime = createLocalRuntime(DATA_DIR);
+const skillsStore = require('./app-skills').createSkillsStore(DATA_DIR);
+ipcMain.handle('skills:list', () => skillsStore.list());
+ipcMain.handle('skills:toggle', (_event, name, active) => skillsStore.toggle(name, active));
+ipcMain.handle('skills:folder', () => shell.openPath(skillsStore.directory));
+ipcMain.handle('skills:import', async event => {
+  const result = await dialog.showOpenDialog(BrowserWindow.fromWebContents(event.sender), { title: 'Import skill', properties: ['openFile'], filters: [{ name: 'Markdown skill', extensions: ['md'] }] });
+  return result.canceled ? skillsStore.list() : skillsStore.importFile(result.filePaths[0]);
+});
 
 function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR) && fs.existsSync(LEGACY_DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    for (const name of ['data.json', 'settings.json']) {
-      const oldPath = path.join(LEGACY_DATA_DIR, name);
-      const nextPath = path.join(DATA_DIR, name);
-      if (fs.existsSync(oldPath) && !fs.existsSync(nextPath)) fs.copyFileSync(oldPath, nextPath);
-    }
-  }
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   for (const dir of [ELECTRON_USER_DATA_DIR, ELECTRON_CACHE_DIR, ELECTRON_GPU_CACHE_DIR]) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -48,13 +68,6 @@ app.commandLine.appendSwitch('disk-cache-dir', ELECTRON_CACHE_DIR);
 app.commandLine.appendSwitch('gpu-cache-dir', ELECTRON_GPU_CACHE_DIR);
 
 function ensureProjectsDir() {
-  if (!fs.existsSync(PROJECTS_DIR) && fs.existsSync(LEGACY_PROJECTS_DIR)) {
-    try {
-      fs.renameSync(LEGACY_PROJECTS_DIR, PROJECTS_DIR);
-    } catch (e) {
-      // If migration is blocked, keep going with a fresh NevoProject folder.
-    }
-  }
   if (!fs.existsSync(PROJECTS_DIR)) fs.mkdirSync(PROJECTS_DIR, { recursive: true });
 }
 
@@ -75,7 +88,7 @@ function getUniqueProjectFolderName(baseName, currentName = null) {
     fs.existsSync(path.join(PROJECTS_DIR, candidate)) &&
     candidate.toLowerCase() !== String(currentName || '').toLowerCase()
   ) {
-    candidate = base === 'NevoProject' ? `${base}${index}` : `${base} ${index}`;
+    candidate = base === 'MusicalProject' ? `${base}${index}` : `${base} ${index}`;
     index += 1;
   }
   return candidate;
@@ -129,7 +142,7 @@ async function internetSearch(query, preferredDomains = [], onProgress = null) {
   const url = `https://duckduckgo.com/html/?q=${encodeURIComponent(q)}`;
   const response = await fetch(url, {
     headers: {
-      'User-Agent': 'Mozilla/5.0 Nevo/1.0',
+      'User-Agent': 'Mozilla/5.0 Musical AI/1.0',
       'Accept': 'text/html,application/xhtml+xml'
     }
   });
@@ -221,7 +234,7 @@ async function installPythonPackages(packages, folderName) {
     .filter(pkg => /^[a-zA-Z0-9_.-]+$/.test(pkg))));
   if (!safePackages.length) return { ok: true, packages: [] };
 
-  const folder = ensureProjectFolder(folderName || 'NevoProject', folderName || 'NevoProject');
+  const folder = ensureProjectFolder(folderName || 'MusicalProject', folderName || 'MusicalProject');
   const run = (command, args, timeoutMs = 20 * 60 * 1000) => new Promise(resolve => {
     const child = spawn(command, args, {
       cwd: folder.path,
@@ -308,7 +321,7 @@ async function installNodePackages(packages, folderName) {
     .filter(pkg => /^(?:@[a-zA-Z0-9_.-]+\/)?[a-zA-Z0-9_.-]+$/.test(pkg))));
   if (!safePackages.length) return { ok: true, packages: [] };
 
-  const folder = ensureProjectFolder(folderName || 'NevoProject', folderName || 'NevoProject');
+  const folder = ensureProjectFolder(folderName || 'MusicalProject', folderName || 'MusicalProject');
   const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   return new Promise(resolve => {
     const child = spawn(command, ['install', ...safePackages], {
@@ -374,8 +387,9 @@ function createWindow() {
     height: 780,
     minWidth: 820,
     minHeight: 520,
-    title: 'Nevo',
-    icon: path.join(__dirname, '..', 'resources', process.platform === 'win32' ? 'nevo-logo.ico' : 'nevo-logo.png'),
+    title: 'Musical AI',
+    frame: false,
+    icon: path.join(__dirname, '..', 'resources', process.platform === 'win32' ? 'musical-logo.ico' : 'musical-logo.png'),
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -390,6 +404,14 @@ function createWindow() {
   win.loadFile(path.join(__dirname, '..', 'index.html'));
   return win;
 }
+
+ipcMain.handle('window:action', (event, action) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (!win) return;
+  if (action === 'minimize') win.minimize();
+  if (action === 'maximize') win.isMaximized() ? win.unmaximize() : win.maximize();
+  if (action === 'close') win.close();
+});
 
 // ============================================================
 //  Автозапуск Ollama
@@ -415,7 +437,7 @@ function bundledOllamaCandidates() {
 }
 
 function findOllamaExe() {
-  // 1) bundled with Nevo
+  // 1) bundled with Musical AI
   for (const c of bundledOllamaCandidates()) {
     if (fs.existsSync(c)) return c;
   }
@@ -552,12 +574,12 @@ function isOllamaResponding() {
   });
 }
 
-async function ensureOllamaRunning() {
+async function ensureOllamaRunning(allowInstall = false) {
   // Уже запущен?
   if (await isOllamaResponding()) return true;
 
   let exe = findOllamaExe();
-  if (!exe) {
+  if (!exe && allowInstall) {
     const installed = await installOllamaForPlatform();
     if (installed) exe = findOllamaExe();
   }
@@ -602,8 +624,29 @@ async function ensureOllamaRunning() {
 app.whenReady().then(async () => {
   ensureDataDir();
   createWindow();
-  ensureOllamaRunning();   // фоновая попытка автозапуска / автоустановки
+  discordActivity.configure(loadSettings().discordActivity);
+  ensureOllamaRunning().catch(() => {});
+  if (localRuntime.installed()) localRuntime.start().catch(() => {});
 });
+
+app.on('before-quit', () => { localRuntime.stop(); discordActivity.stop(); });
+ipcMain.handle('local:status', () => localRuntime.status());
+ipcMain.handle('local:setup', event => localRuntime.setup(progress => {
+  if (!event.sender.isDestroyed()) event.sender.send('local:progress', progress);
+}));
+ipcMain.handle('local:cancel', () => { localRuntime.cancel(); return { ok: true }; });
+ipcMain.handle('local:activate', async (_event, model) => {
+  try { return { ok: await localRuntime.start(model) }; }
+  catch (error) { return { ok: false, error: error.message }; }
+});
+ipcMain.handle('local:pull', (event, model) => localRuntime.setup(progress => {
+  if (!event.sender.isDestroyed()) event.sender.send('pull-progress', { model, status: progress.stage, percent: progress.total ? Math.round(progress.completed / progress.total * 100) : 0 });
+}, model));
+ipcMain.handle('local:start', async () => {
+  try { return { ok: await localRuntime.start() }; }
+  catch (error) { return { ok: false, error: error.message }; }
+});
+ipcMain.handle('ollama:install', async () => ({ ok: await ensureOllamaRunning(true) }));
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
@@ -628,14 +671,14 @@ ipcMain.handle('data:save', async (_e, data) => {
 //  IPC: НАСТРОЙКИ
 // ============================================================
 ipcMain.handle('settings:get', async () => loadSettings());
-ipcMain.handle('settings:save', async (_e, s) => { saveSettings(s); return { ok: true }; });
+ipcMain.handle('settings:save', async (_e, s) => { saveSettings(s); discordActivity.configure(s.discordActivity); return { ok: true }; });
 
 // ============================================================
 //  IPC: OLLAMA
 // ============================================================
 ipcMain.handle('ollama:status', async () => {
   try {
-    const resp = await fetch(`${OLLAMA_HOST}/api/tags`);
+    const resp = await fetch(`${OLLAMA_HOST}/api/tags`, { signal: AbortSignal.timeout(2000) });
     if (!resp.ok) return {
       ok: false,
       running: false,
@@ -676,6 +719,7 @@ ipcMain.handle('ollama:ensure-running', async () => {
 // Скачать модель с прогрессом
 ipcMain.handle('ollama:pull', async (event, modelName) => {
   try {
+    if (!await ensureOllamaRunning(true)) throw new Error('Could not install or start Ollama. Use Quick setup or retry.');
     const response = await fetch(`${OLLAMA_HOST}/api/pull`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -803,7 +847,7 @@ ipcMain.handle('image:generate-online', async (_event, prompt) => {
     const text = String(prompt || '').trim().slice(0, 1200);
     if (!text) return { ok: false, error: 'Empty image prompt.' };
     const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(text)}?width=768&height=768&nologo=true`;
-    const response = await fetch(url, { headers: { 'User-Agent': 'Nevo/1.1.7' } });
+    const response = await fetch(url, { headers: { 'User-Agent': 'Musical AI/1.1.7' } });
     if (!response.ok) return { ok: false, error: `Image service HTTP ${response.status}` };
     const bytes = Buffer.from(await response.arrayBuffer());
     if (!bytes.length) return { ok: false, error: 'Image service returned an empty file.' };

@@ -1,38 +1,53 @@
 {
-  "name": "nevo-ai-place",
-  "version": "1.1.7",
-  "description": "Nevo - local AI coding assistant powered by Ollama",
+  "name": "musical-ai",
+  "version": "1.18.0",
+  "description": "Musical AI - local AI workspace with collaborative agents",
   "main": "electron/main.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "check": "node --check electron/main.js && node --check electron/preload.js && node --check renderer.js",
+    "check": "node --check electron/main.js && node --check electron/preload.js && node --check renderer.js && node --check musical-ai.js && node --check electron/local-runtime.js && node --check electron/storage-migration.js && node --check electron/app-skills.js && node --check electron/discord-activity.js && node --check electron/discord-media.js",
     "fix:encoding": "node scripts/fix-mojibake.js --write",
-    "dist:win": "electron-builder --win portable"
+    "dist:win": "electron-builder --win nsis portable",
+    "test": "node --test tests/*.test.js"
   },
-  "productName": "Nevo",
+  "productName": "Musical AI",
   "private": true,
   "build": {
-    "appId": "ai.nevo.place",
-    "productName": "Nevo",
+    "appId": "ai.musical.place",
+    "productName": "Musical AI",
     "files": [
       "**/*",
       "!dist/**",
-      "!.git/**"
+      "!.git/**",
+      "!tests/**",
+      "!resources/nevo-*",
+      "!artifacts/**"
     ],
     "directories": {
-      "buildResources": "resources",
+      "buildResources": "build",
       "output": "dist"
     },
     "win": {
-      "icon": "resources/nevo-logo.ico",
+      "icon": "resources/musical-logo.ico",
       "target": [
+        "nsis",
         "portable"
       ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Musical AI",
+      "guid": "b74d891e-393a-5bfb-895d-fb3070229109"
     }
   },
   "devDependencies": {
     "electron": "^28.3.3",
     "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "sharp": "^0.34.3"
   }
 }

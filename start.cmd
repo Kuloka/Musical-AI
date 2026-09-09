@@ -1,8 +1,8 @@
 @echo off
-title Nevo
+title Musical AI
 echo.
 echo   ========================================
-echo            Nevo - Starting
+echo            Musical AI - Starting
 echo   ========================================
 echo.
 
