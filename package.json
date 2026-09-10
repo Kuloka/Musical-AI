@@ -1,6 +1,6 @@
 {
   "name": "musical-ai",
-  "version": "1.22.0",
+  "version": "1.19.0",
   "description": "Musical AI - local AI workspace with collaborative agents",
   "main": "electron/main.js",
   "scripts": {
@@ -50,7 +50,7 @@
       "target": [
         "dmg"
       ],
-      "artifactName": "Musical-AI-macOS-1.22.0-${arch}.${ext}"
+      "artifactName": "Musical-AI-macOS-1.19.0-${arch}.${ext}"
     },
     "linux": {
       "category": "Utility",
@@ -59,7 +59,7 @@
         "AppImage",
         "deb"
       ],
-      "artifactName": "Musical-AI-Linux-1.22.0-${arch}.${ext}",
+      "artifactName": "Musical-AI-Linux-1.19.0-${arch}.${ext}",
       "maintainer": "Musical AI"
     },
     "asarUnpack": [

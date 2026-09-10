@@ -4961,12 +4961,13 @@
 
     const installedNames = availableModels.map(m => m.name);
     const lower = (filter || "").toLowerCase();
-    const nativeCatalog = settings.catalogBackend !== "ollama";
+    const nativeCatalog = localRuntimeState.supported !== false && settings.catalogBackend !== "ollama";
     const backendBar = document.createElement("div");
     backendBar.className = "catalog-backends";
     backendBar.style.gridColumn = "1 / -1";
     backendBar.innerHTML = `<button class="catalog-btn" data-backend="local" aria-pressed="${nativeCatalog}">${settings.appLanguage === "ru" ? "Без Ollama" : "Without Ollama"}</button><button class="catalog-btn" data-backend="ollama" aria-pressed="${!nativeCatalog}">Ollama</button><p>${nativeCatalog ? (settings.appLanguage === "ru" ? "Текстовые модели для встроенного движка. Ollama устанавливать не нужно." : "Text models for the built-in engine. No Ollama installation needed.") : (settings.appLanguage === "ru" ? "Эти модели используют Ollama." : "These models use Ollama.")}</p>`;
     backendBar.querySelectorAll("button").forEach(button => button.addEventListener("click", () => { settings.catalogBackend = button.dataset.backend; persist(); renderModelsCatalog(filter); }));
+    if (localRuntimeState.supported === false) backendBar.querySelector('[data-backend="local"]').hidden = true;
     body.appendChild(backendBar);
     const extras = [
       { name: "qwen2.5:0.5b", size: "0.40 GB", category: "Qwen", desc: "Qwen 2.5 0.5B" },

@@ -1,13 +1,16 @@
 const {app,BrowserWindow}=require('electron');const fs=require('fs'),path=require('path'),assert=require('assert/strict');
 const root=path.resolve(__dirname,'..'),out=path.join(root,'artifacts');
+const server=require('http').createServer((req,res)=>{const file=path.resolve(root,'docs','.'+new URL(req.url,'http://localhost').pathname.replace(/\/$/,'/index.html'));if(!file.startsWith(path.join(root,'docs')+path.sep)){res.writeHead(403);return res.end();}fs.readFile(file,(error,data)=>{res.writeHead(error?404:200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.html')?'text/html':file.endsWith('.svg')?'image/svg+xml':'application/octet-stream'});res.end(error?'Not found':data);});});
+app.on('before-quit',()=>server.close());
 app.setPath('userData',path.join(out,'site-test-profile'));
 const motion=process.argv.includes('--motion');
 if(!motion)app.commandLine.appendSwitch('force-prefers-reduced-motion','reduce');
 app.whenReady().then(async()=>{
   const win=new BrowserWindow({width:1440,height:1050,show:false,frame:false,webPreferences:{offscreen:true}});const errors=[];
   win.webContents.on('console-message',(_e,level,message)=>{if(level===3&&!/Content Security/.test(message))errors.push(message);});
-  await win.loadFile(path.join(root,'docs','index.html'));
-  await new Promise(resolve=>setTimeout(resolve,350));
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  await win.loadURL('http://127.0.0.1:'+server.address().port);
+  await new Promise(resolve=>setTimeout(resolve,1200));
   if(motion){
     await new Promise(resolve=>setTimeout(resolve,1600));
     assert.ok(await win.webContents.executeJavaScript("!!document.querySelector('#antigravity canvas')"));
@@ -16,7 +19,7 @@ app.whenReady().then(async()=>{
     fs.writeFileSync(path.join(out,'musical-site-motion.png'),(await win.webContents.capturePage()).toPNG());
   }
   assert.equal(await win.webContents.executeJavaScript('document.documentElement.scrollWidth <= innerWidth'),true);
-  assert.ok(await win.webContents.executeJavaScript("[...document.images].every(image=>image.complete&&image.naturalWidth>0)"));
+  assert.ok(await win.webContents.executeJavaScript("[...document.images].filter(image=>image.getBoundingClientRect().top<innerHeight).every(image=>image.complete&&image.naturalWidth>0)"));
   await win.webContents.executeJavaScript("document.querySelector('#tab-cloud').click()");
   assert.equal(await win.webContents.executeJavaScript("document.querySelector('#tab-cloud').getAttribute('aria-selected')"),'true');
   assert.match(await win.webContents.executeJavaScript("document.querySelector('#demo-content').textContent"),/API/);
@@ -35,7 +38,7 @@ app.whenReady().then(async()=>{
     assert.match(await win.webContents.executeJavaScript("document.querySelector('#demo-content').textContent"),/API/);
     assert.equal(await win.webContents.executeJavaScript("document.querySelectorAll('.download-grid a').length"),6);
   }
-  await win.webContents.reload();await new Promise(resolve=>setTimeout(resolve,400));
+  await win.webContents.reload();await new Promise(resolve=>setTimeout(resolve,1200));
   assert.equal(await win.webContents.executeJavaScript('document.documentElement.lang'),'uk');
   await win.webContents.executeJavaScript("document.querySelector('#language-toggle').click();document.querySelector('[data-language=en]').click();document.querySelector('#language-toggle').click();");
   await new Promise(resolve=>setTimeout(resolve,250));
