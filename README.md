@@ -8,7 +8,7 @@
 
 # Musical AI
 
-[Product website](https://kuloka.github.io/Musical-AI/) · [Latest downloads](https://github.com/Kuloka/Musical-AI/releases/latest)
+[Product website](https://musical-ai.pages.dev/) · [Latest downloads](https://github.com/Kuloka/Musical-AI/releases/latest)
 
 Local desktop AI studio built with Electron. Musical AI can prepare a compact model without installing Ollama, and split a request between specialist agents before producing a combined answer.
 
