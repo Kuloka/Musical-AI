@@ -7,7 +7,8 @@ import './effects.css';
 // BorderGlow's edge-proximity and directional cone, adapted for existing HTML.
 // Keep the original elements so tabs, links and native details retain behavior.
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-document.querySelectorAll('.feature-grid article,.detail-grid article,.product-window,.demo,.faq details,.demo-tabs button,.button').forEach(card => {
+function enhanceCards(){document.querySelectorAll('.feature-grid article,.detail-grid article,.download-grid article,.product-window,.demo,.faq details,.demo-tabs button,.button').forEach(card => {
+  if(card.classList.contains('border-glow-card'))return;
   card.classList.add('border-glow-card');
   const edge = document.createElement('span');
   edge.className = 'edge-light';
@@ -22,7 +23,9 @@ document.querySelectorAll('.feature-grid article,.detail-grid article,.product-w
     card.style.setProperty('--cursor-angle',`${Math.atan2(dy,dx)*180/Math.PI+90}deg`);
   },{passive:true});
   card.addEventListener('pointerleave',()=>card.style.setProperty('--edge-proximity','0'));
-});
+});}
+enhanceCards();
+document.addEventListener('site:render',enhanceCards);
 
 class QuietFallback extends Component {
   state={failed:false};

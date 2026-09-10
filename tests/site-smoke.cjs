@@ -27,6 +27,26 @@ app.whenReady().then(async()=>{
   win.setSize(390,844);await new Promise(resolve=>setTimeout(resolve,250));
   assert.equal(await win.webContents.executeJavaScript('document.documentElement.scrollWidth <= innerWidth'),true);
   fs.writeFileSync(path.join(out,'musical-site-mobile.png'),(await win.webContents.capturePage()).toPNG());
+  for(const code of ['en','ru','es','pt','fr','de','it','tr','pl','uk']){
+    await win.webContents.executeJavaScript(`document.querySelector('#language-toggle').click();document.querySelector('[data-language="${code}"]').click()`);
+    assert.equal(await win.webContents.executeJavaScript('document.documentElement.lang'),code);
+    assert.equal(await win.webContents.executeJavaScript('document.documentElement.scrollWidth <= innerWidth'),true,code+' mobile overflow');
+    await win.webContents.executeJavaScript("document.querySelector('#tab-cloud').click()");
+    assert.match(await win.webContents.executeJavaScript("document.querySelector('#demo-content').textContent"),/API/);
+    assert.equal(await win.webContents.executeJavaScript("document.querySelectorAll('.download-grid a').length"),6);
+  }
+  await win.webContents.reload();await new Promise(resolve=>setTimeout(resolve,400));
+  assert.equal(await win.webContents.executeJavaScript('document.documentElement.lang'),'uk');
+  await win.webContents.executeJavaScript("document.querySelector('#language-toggle').click();document.querySelector('[data-language=en]').click();document.querySelector('#language-toggle').click();");
+  await new Promise(resolve=>setTimeout(resolve,250));
+  await win.webContents.executeJavaScript("document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true}))");
+  assert.equal(await win.webContents.executeJavaScript('document.activeElement.dataset.language'),'uk',JSON.stringify(await win.webContents.executeJavaScript("({active:document.activeElement.outerHTML.slice(0,250),open:document.getElementById('language-toggle').getAttribute('aria-expanded'),inert:document.getElementById('language-options').inert,visibility:getComputedStyle(document.getElementById('language-options')).visibility})")));
+  await win.webContents.executeJavaScript("document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))");
+  assert.equal(await win.webContents.executeJavaScript("document.querySelector('#language-toggle').getAttribute('aria-expanded')"),'false');
+  win.setSize(1440,1050);
+  await win.webContents.executeJavaScript("document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));document.querySelector('#download').scrollIntoView({behavior:'instant'})");
+  await new Promise(resolve=>setTimeout(resolve,300));
+  fs.writeFileSync(path.join(out,'musical-site-downloads.png'),(await win.webContents.capturePage()).toPNG());
   assert.ok(await win.webContents.executeJavaScript("[...document.querySelectorAll('a[href^=\"#\"]')].every(a=>a.hash===''||document.getElementById(a.hash.slice(1)))"));
-  assert.deepEqual(errors,[]);console.log('PASS: desktop/mobile layout, local images, feature tabs, anchor links, no console errors');win.destroy();app.quit();
+  assert.deepEqual(errors,[]);console.log('PASS: desktop/mobile, 10 languages, persistence, keyboard menu, feature tabs, six downloads, no console errors');win.destroy();app.quit();
 }).catch(error=>{console.error(error.message);app.exit(1);});

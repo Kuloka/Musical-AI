@@ -10,7 +10,7 @@ contextBridge.exposeInMainWorld('api', {
   pluginsToggle: (id, enabled) => ipcRenderer.invoke('test:plugins-toggle', id, enabled),
   pluginsRemove: id => ipcRenderer.invoke('test:plugins-remove', id),
   dataGet: async () => ({ groups: [], chats: [] }), dataSave: async () => ({}),
-  settingsGet: async () => ({ appLanguage: 'ru', theme: 'dark', teamEnabled: true, downloadedLanguages: ['en', 'ru'] }), settingsSave: async () => ({}),
+  settingsGet: async () => ({ appLanguage: process.env.MUSICAL_PREVIEW_LANGUAGE || 'ru', theme: 'dark', teamEnabled: true, downloadedLanguages: ['en', 'ru'] }), settingsSave: async () => ({}),
   ollamaStatus: async () => ({ running: false, models: [] }),
   localStatus: () => ipcRenderer.invoke('test:status'),
   localSetup: () => ipcRenderer.invoke('test:setup'),

@@ -48,7 +48,7 @@ app.whenReady().then(async () => {
   const errors = [];
   win.webContents.on('console-message', (_event, level, message) => { if (level === 3 && !/ERR_|Content Security|Failed to load resource/.test(message)) errors.push(message); });
   await win.loadFile(path.join(root, process.argv.includes('--packaged') ? 'dist/win-unpacked/resources/app.asar/index.html' : 'index.html'));
-  await waitFor(win, `document.querySelector('#localSetupBtn').textContent === 'Быстрая настройка'`);
+  await waitFor(win, `document.querySelector('#localSetupBtn').textContent === ${JSON.stringify(process.env.MUSICAL_PREVIEW_LANGUAGE === 'en' ? 'Quick setup' : 'Быстрая настройка')}`);
   await new Promise(resolve => setTimeout(resolve, 1800));
   fs.writeFileSync(path.join(out, 'musical-welcome.png'), (await win.webContents.capturePage()).toPNG());
   assert.ok(await win.webContents.executeJavaScript(`document.querySelector('#localSetupCard').getBoundingClientRect().bottom < document.querySelector('.composer').getBoundingClientRect().top`), 'Setup must not overlap composer');

@@ -2,13 +2,13 @@
   <img src="resources/branding/musical-github.png" alt="Musical AI - your ideas, your models, your machine" width="100%">
 </p>
 <p align="center">
-  <a href="https://github.com/Kuloka/Musical-AI/releases/tag/1.18">Download for Windows</a> &nbsp; / &nbsp;
+  <a href="https://github.com/Kuloka/Musical-AI/releases/tag/1.22">Download for Windows, macOS and Linux</a> &nbsp; / &nbsp;
   <a href="#development">Development</a>
 </p>
 
 # Musical AI
 
-[Product website](https://kuloka.github.io/Musical-AI/) · [Latest Windows download](https://github.com/Kuloka/Musical-AI/releases/latest)
+[Product website](https://kuloka.github.io/Musical-AI/) · [Latest downloads](https://github.com/Kuloka/Musical-AI/releases/latest)
 
 Local desktop AI studio built with Electron. Musical AI can prepare a compact model without installing Ollama, and split a request between specialist agents before producing a combined answer.
 
@@ -19,6 +19,12 @@ Run the generated Musical AI Setup executable, then choose **Quick setup** in th
 Quick setup currently supports **Windows x64** and text conversations. The small starter model is intended for getting started; it is not a replacement for a larger coding model. The runtime binds only to loopback and stops when Musical AI exits. Models need an internet connection to download; generation with the prepared model works locally. The existing optional web search feature can still make internet requests.
 
 Existing Ollama installations are detected and started automatically. **Install Ollama instead** installs it from the app; downloading an Ollama catalog model also prepares Ollama when necessary. Other platforms currently use Ollama. The welcome screen provides the model download size before setup starts.
+
+## macOS and Linux installation
+
+Release 1.22 includes macOS DMGs for **Apple Silicon (arm64)** and **Intel (x64)**, plus Linux x64 **AppImage** and **Ubuntu/Debian .deb** packages. On Mac, open the DMG and drag Musical AI to Applications. These builds are unsigned and not notarized by Apple; macOS may require approval in Privacy & Security. On Linux, install the .deb or make the AppImage executable before launching it; AppImage may require FUSE.
+
+For local models on these platforms, install Ollama and select the **Ollama** tab in the model catalog. The **Without Ollama / Quick setup** engine is Windows x64 only. Ollama Cloud is also available through settings. All four native CI jobs run the automated suite and check that the packaged app launches; inference on every platform and clean-machine installer flows have not been tested.
 
 ## Agent team
 
