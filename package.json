@@ -46,7 +46,7 @@
     },
     "mac": {
       "category": "public.app-category.productivity",
-      "icon": "resources/musical-logo.png",
+      "icon": "resources/musical-logo-mac.png",
       "target": [
         "dmg"
       ],
@@ -61,7 +61,11 @@
       ],
       "artifactName": "Musical-AI-Linux-1.22.0-${arch}.${ext}",
       "maintainer": "Musical AI"
-    }
+    },
+    "asarUnpack": [
+      "node_modules/@img/**/*",
+      "node_modules/sharp/**/*"
+    ]
   },
   "devDependencies": {
     "electron": "^28.3.3",
