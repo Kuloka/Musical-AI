@@ -14,6 +14,37 @@ const { initializeStorage } = require('./storage-migration');
 const { dataDir: DATA_DIR, projectsDir: PROJECTS_DIR } = initializeStorage(os.homedir());
 const CHATS_FILE = path.join(DATA_DIR, 'data.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+const cloud = require('./ollama-cloud').createCloud(DATA_DIR, require('electron').safeStorage);
+const cloudRequests = new Map();
+ipcMain.handle('cloud:status', () => cloud.status());
+ipcMain.handle('cloud:save', (_event, key) => cloud.save(key));
+ipcMain.handle('cloud:disconnect', () => { for (const request of cloudRequests.values()) request.abort(); return cloud.disconnect(); });
+ipcMain.handle('cloud:models', (_event, force) => cloud.models(force));
+ipcMain.handle('cloud:open', (_event, page) => {
+  const url = { keys:'https://ollama.com/settings/keys', pricing:'https://ollama.com/pricing', account:'https://ollama.com/settings' }[page];
+  if (url) return shell.openExternal(url);
+});
+ipcMain.handle('cloud:request', async (event, id, body) => {
+  const requestId = `${event.sender.id}:${id}`;
+  if (cloudRequests.has(requestId)) throw new Error('Duplicate cloud request.');
+  const controller = new AbortController(); cloudRequests.set(requestId, controller);
+  const timeout = setTimeout(() => controller.abort(), 180000);
+  const send = data => { if (!event.sender.isDestroyed()) event.sender.send('cloud:event', { id, ...data }); else controller.abort(); };
+  try { await cloud.chat(body, controller.signal, send); }
+  catch (error) { send({ type:'failed', message:error.message, aborted:controller.signal.aborted }); }
+  finally { clearTimeout(timeout); cloudRequests.delete(requestId); }
+});
+ipcMain.handle('cloud:cancel', (event, id) => cloudRequests.get(`${event.sender.id}:${id}`)?.abort());
+const plugins = require('./mcp-plugins').createPlugins(DATA_DIR, PROJECTS_DIR);
+ipcMain.handle('plugins:list', () => plugins.list());
+ipcMain.handle('plugins:add', (_e, config) => plugins.add(config));
+ipcMain.handle('plugins:toggle', (_e, id, enabled) => plugins.toggle(id, enabled));
+ipcMain.handle('plugins:remove', (_e, id) => plugins.remove(id));
+ipcMain.handle('plugins:call', (event, id, name, args, requestId) => {
+  if (loadSettings().accessMode === 'plan') throw new Error('Tools are disabled in Plan mode.');
+  return plugins.call(id, name, args, `${event.sender.id}:${requestId}`);
+});
+ipcMain.handle('plugins:cancel', (event, requestId) => plugins.cancel(`${event.sender.id}:${requestId}`));
 const discordActivity = require('./discord-activity').createDiscordActivity();
 const discordMedia = require('./discord-media');
 const DISCORD_MEDIA_DIR = path.join(DATA_DIR, 'discord-media');
@@ -625,11 +656,17 @@ app.whenReady().then(async () => {
   ensureDataDir();
   createWindow();
   discordActivity.configure(loadSettings().discordActivity);
+  plugins.start();
   ensureOllamaRunning().catch(() => {});
   if (localRuntime.installed()) localRuntime.start().catch(() => {});
 });
 
-app.on('before-quit', () => { localRuntime.stop(); discordActivity.stop(); });
+let closingPlugins = false;
+app.on('before-quit', event => {
+  localRuntime.stop(); discordActivity.stop();
+  for (const request of cloudRequests.values()) request.abort();
+  if (!closingPlugins) { event.preventDefault(); closingPlugins = true; plugins.close().finally(() => app.quit()); }
+});
 ipcMain.handle('local:status', () => localRuntime.status());
 ipcMain.handle('local:setup', event => localRuntime.setup(progress => {
   if (!event.sender.isDestroyed()) event.sender.send('local:progress', progress);

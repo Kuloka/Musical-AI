@@ -1,7 +1,7 @@
 const net = require('net');
 const path = require('path');
 const { randomUUID } = require('crypto');
-const DEFAULT_IMAGE = 'https://raw.githubusercontent.com/Kuloka/Nevo-AI-place/af1f5506187fcf15dff810f5faa6773a596f4810/resources/musical-logo-animated.gif';
+const DEFAULT_IMAGE = 'https://raw.githubusercontent.com/Kuloka/Musical-AI/af1f5506187fcf15dff810f5faa6773a596f4810/resources/musical-logo-animated.gif';
 
 function frame(op, value) {
   const body = Buffer.isBuffer(value) ? value : Buffer.from(JSON.stringify(value));

@@ -1121,6 +1121,91 @@
   }
 
   let discordMediaPreview = null;
+  async function refreshCloudStatus(){
+    if(!window.api?.cloudStatus)return;
+    const status=await window.api.cloudStatus();const ru=settings.appLanguage==='ru';
+    $('cloudAccountStatus').textContent=status.configured?(ru?'Ключ сохранён. Доступ к аккаунту проверяется при запросе к модели.':'API key saved. Account access is checked when you request a model.'):(ru?'Аккаунт не подключён':'Account not connected');
+    $('cloudDisconnect').hidden=!status.configured;
+    $('cloudPrivacy').textContent=ru?'Облачные модели отправляют сообщения и приложенный контекст в Ollama. Локальные модели работают на вашем компьютере.':'Cloud models send messages and attached context to Ollama. Local models run on your machine.';
+    $('cloudGetKey').textContent=ru?'Войти / создать API-ключ':'Sign in / create key';
+    $('cloudConnect').textContent=ru?'Подключить аккаунт':'Connect account';
+    $('cloudDisconnect').textContent=ru?'Отключить':'Disconnect';
+    $('cloudPlansBtn').textContent=ru?'Тарифы':'View plans';
+    $('cloudModelsTitle').textContent=ru?'Облачные модели':'Cloud models';
+    $('cloudRefresh').textContent=ru?'Обновить':'Refresh';
+    $('cloudApiKey').placeholder=ru?'Вставьте API-ключ':'Paste your API key';
+  }
+  async function refreshCloudModels(force=false){
+    if(!window.api?.cloudModels)return;
+    $('cloudError').textContent='';$('cloudRefresh').disabled=true;
+    try{
+      const models=await window.api.cloudModels(force);const list=$('cloudModelsList');list.replaceChildren();
+      models.forEach(model=>{const button=document.createElement('button');button.type='button';button.className='cloud-model-row';button.textContent=model.cloudName+'  ·  Cloud';
+        button.onclick=async()=>{const status=await window.api.cloudStatus();if(!status.configured){$('cloudApiKey').focus();$('cloudError').textContent=settings.appLanguage==='ru'?'Сначала подключите аккаунт с API-ключом.':'Connect your account with an API key first.';return;}
+          if(!availableModels.some(m=>m.name===model.name))availableModels.push(model);selectModel(model.name);settingsModal.classList.remove('show');};list.append(button);
+      });
+    }catch(error){$('cloudError').textContent=error.message;}finally{$('cloudRefresh').disabled=false;}
+  }
+  function openCloudPlans(reason){
+    const ru=settings.appLanguage==='ru';
+    $('cloudPlansTitle').textContent=ru?'Больше возможностей в облаке':'More room for your ideas';
+    $('cloudPlansReason').textContent=reason||(ru?'Выберите тариф Ollama Cloud. Покупка и управление подпиской — на ollama.com.':'Choose an Ollama Cloud plan. Purchases and billing are handled on ollama.com.');
+    $('cloudFreeDesc').textContent=ru?'Начальный облачный лимит. Локальные модели без ограничений.':'Starter cloud usage. Local models remain unlimited.';
+    $('cloudProDesc').textContent=ru?'Больше ресурсов для повседневных задач с крупными моделями.':'More usage for everyday work with larger models.';
+    $('cloudMaxDesc').textContent=ru?'Для интенсивной работы и нескольких агентов.':'More capacity for intensive work and multiple agents.';
+    $('cloudPriceNote').textContent=ru?'Ориентировочные месячные цены проверены 9 сентября 2026. Итоговые цены и условия API-кредитов указаны у Ollama. Ваш текущий тариф здесь не определяется.':'Reference monthly prices checked September 9, 2026. Final pricing and API credit terms are shown by Ollama. This does not indicate your current plan.';
+    document.querySelectorAll('[data-cloud-plan]').forEach(button=>button.textContent=(ru?'Смотреть ':'View ')+({free:'Free',pro:'Pro',max:'Max'})[button.dataset.cloudPlan]);
+    document.querySelectorAll('.cloud-price small').forEach(label=>label.textContent=ru?'/ месяц':'/ month');
+    $('cloudPlansModal').classList.add('show');$('cloudPlansClose').focus();
+  }
+  $('cloudPlansBtn').onclick=()=>openCloudPlans();
+  $('cloudPlansClose').onclick=()=>$('cloudPlansModal').classList.remove('show');
+  $('cloudPlansModal').addEventListener('click',event=>{if(event.target===$('cloudPlansModal'))$('cloudPlansModal').classList.remove('show');});
+  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&$('cloudPlansModal').classList.contains('show')){event.preventDefault();event.stopImmediatePropagation();$('cloudPlansModal').classList.remove('show');$('cloudPlansBtn').focus();}},true);
+  document.querySelectorAll('[data-cloud-plan]').forEach(button=>button.onclick=()=>window.api.cloudOpen('pricing'));
+  $('cloudGetKey').onclick=()=>window.api.cloudOpen('keys');
+  $('cloudRefresh').onclick=()=>refreshCloudModels(true);
+  document.querySelector('[data-settings-tab="cloud"]').addEventListener('click',()=>{refreshCloudStatus();refreshCloudModels();});
+  $('cloudAccountForm').addEventListener('submit',async event=>{
+    event.preventDefault();$('cloudConnect').disabled=true;
+    try{await window.api.cloudSave($('cloudApiKey').value);$('cloudApiKey').value='';await refreshCloudStatus();await checkOllama();await refreshCloudModels();}
+    catch(error){$('cloudError').textContent=error.message;}finally{$('cloudConnect').disabled=false;}
+  });
+  $('cloudDisconnect').onclick=async()=>{await window.api.cloudDisconnect();$('cloudApiKey').value='';if(settings.selectedModel?.startsWith('cloud:'))settings.selectedModel=null;await checkOllama();renderSelectedModel(settings.selectedModel);await persist();await refreshCloudStatus();};
+  window.addEventListener('ollama-cloud-problem',event=>{
+    const {kind,message}=event.detail;
+    if(kind==='billing')openCloudPlans(message);
+    else if(kind==='auth'){settingsModal.classList.add('show');document.querySelector('[data-settings-tab="cloud"]').click();$('cloudError').textContent=message;}
+    else $('cloudError').textContent=message;
+  });
+  function renderPlugins(entries) {
+    const list=$('pluginsList');const signature=JSON.stringify(entries);if(list.dataset.signature===signature)return;list.dataset.signature=signature;list.replaceChildren();
+    if(!entries.length){list.textContent=settings.appLanguage==='ru'?'Подключений пока нет.':'No connections yet.';return;}
+    entries.forEach(plugin=>{
+      const row=document.createElement('section');row.className='plugin-row';
+      const head=document.createElement('div');head.className='discord-heading';
+      const title=document.createElement('strong');title.textContent=plugin.name;
+      const toggle=document.createElement('button');toggle.type='button';toggle.className='activity-switch';toggle.setAttribute('role','switch');toggle.setAttribute('aria-label',plugin.name);toggle.setAttribute('aria-checked',String(plugin.enabled));toggle.innerHTML='<span></span>';
+      toggle.addEventListener('click',async()=>{toggle.disabled=true;try{renderPlugins(await window.api.pluginsToggle(plugin.id,!plugin.enabled));}catch(error){$('pluginsError').textContent=error.message;toggle.disabled=false;}});
+      head.append(title,toggle);row.append(head);
+      const status=document.createElement('p');status.textContent=`${plugin.state} · ${plugin.type} · ${plugin.tools.length} tools${plugin.error?' · '+plugin.error:''}`;row.append(status);
+      const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Tools';details.append(summary);
+      plugin.tools.forEach(tool=>{const item=document.createElement('p');const name=document.createElement('strong');name.textContent=tool.name;item.append(name,document.createTextNode(' — '+tool.description));details.append(item);});row.append(details);
+      if(plugin.enabled&&plugin.state!=='connected'){const retry=document.createElement('button');retry.type='button';retry.className='catalog-btn';retry.textContent='Reconnect';retry.onclick=async()=>{retry.disabled=true;try{renderPlugins(await window.api.pluginsToggle(plugin.id,true));}catch(error){$('pluginsError').textContent=error.message;retry.disabled=false;}};row.append(retry);}
+      const remove=document.createElement('button');remove.type='button';remove.className='catalog-btn';remove.textContent='Remove';remove.onclick=async()=>{try{renderPlugins(await window.api.pluginsRemove(plugin.id));}catch(error){$('pluginsError').textContent=error.message;}};row.append(remove);list.append(row);
+    });
+  }
+  async function refreshPlugins(){if(!window.api?.pluginsList)return;try{renderPlugins(await window.api.pluginsList());}catch(error){$('pluginsError').textContent=error.message;}}
+  $('pluginType').addEventListener('change',()=>{
+    const type=$('pluginType').value;
+    $('pluginCommandRow').hidden=$('pluginArgsRow').hidden=type!=='stdio';$('pluginUrlRow').hidden=type!=='http';
+    $('pluginTransportHint').textContent=type==='builtin'?'Reads project folders and text files inside MusicalProject. No extra installation.':type==='stdio'?'Enabling starts the executable on your computer. Its runtime must already be installed.':'Streamable HTTP endpoint. OAuth and custom authentication headers are not supported yet.';
+  });
+  $('pluginForm').addEventListener('submit',async event=>{
+    event.preventDefault();$('pluginsError').textContent='';const button=event.target.querySelector('[type=submit]');button.disabled=true;
+    try{renderPlugins(await window.api.pluginsAdd({name:$('pluginName').value,type:$('pluginType').value,command:$('pluginCommand').value,args:$('pluginType').value==='stdio'?JSON.parse($('pluginArgs').value):[],url:$('pluginUrl').value}));}
+    catch(error){$('pluginsError').textContent=error.message;}finally{button.disabled=false;}
+  });
   async function updateDiscordStatus() {
     if (!window.api?.discordStatus) return;
     const result = await window.api.discordStatus();
@@ -1172,14 +1257,17 @@
     if (result?.error) $('discordImageWarning').textContent = result.error;
   });
   window.api?.discordMedia?.().then(media => { discordMediaPreview = media; }).catch(() => {});
-  setInterval(() => { if (settingsModal.classList.contains('show')) updateDiscordStatus().catch(() => {}); }, 2000);
+  setInterval(() => { if (settingsModal.classList.contains('show')) { updateDiscordStatus().catch(() => {}); if(!document.querySelector('[data-settings-panel="plugins"]').hidden)refreshPlugins(); } }, 2000);
 
   function renderSettings() {
     renderDiscordSettings();
+    refreshCloudStatus();
+    refreshCloudStatus();
+    refreshPlugins();
     applyAppLanguageBasics();
     const russian = settings.appLanguage === "ru";
     settingsModal.querySelectorAll('[data-settings-tab]').forEach(button => {
-      button.textContent = ({general: russian ? 'Общие' : 'General', models: russian ? 'Модели' : 'Models', skills: 'Skills', discord: 'Discord Activity'})[button.dataset.settingsTab];
+      button.textContent = ({general: russian ? 'Общие' : 'General', models: russian ? 'Модели' : 'Models', skills: 'Skills', plugins: 'Plugins', cloud: 'Ollama Cloud', discord: 'Discord Activity'})[button.dataset.settingsTab];
     });
     if (languagePackList) {
       languagePackList.innerHTML = '';
@@ -1593,6 +1681,7 @@
     ollamaRunning = res.running || local.running || local.installed;
     availableModels = res.models || [];
     availableModels.unshift(...(local.models || (local.running ? [{ name: local.model, size: 1117320736, details: {}, backend: "embedded" }] : [])));
+    if(window.api.cloudStatus){const cloud=await window.api.cloudStatus();if(cloud.configured){try{availableModels.push(...await window.api.cloudModels(false));}catch(error){$('cloudError').textContent=error.message;}}}
     statusDot.className = ollamaRunning ? "status-dot online" : res.installing ? "status-dot loading" : "status-dot offline";
     if (availableModels.length && !availableModels.some(model => model.name === settings.selectedModel)) selectModel(availableModels[0].name);
     welcomeHint.textContent = availableModels.length
@@ -1602,6 +1691,7 @@
     $("localSetupBtn").disabled = !local.supported || ["windows", "windows-install", "engine", "extracting", "model", "starting"].includes(local.stage);
     renderModelDropdown();
     updateMusicalControls();
+    if(settings.selectedModel?.startsWith('cloud:'))welcomeHint.textContent=settings.appLanguage==='ru'?'Ollama Cloud: сообщения отправляются в облако.':'Ollama Cloud: messages are sent to the cloud.';
   }
 
   function updateMusicalControls() {
@@ -1763,8 +1853,9 @@
   }
 
   function getModelsByLevel() {
-    const levels = { "Light (<4GB)": [], "Standard (4-8GB)": [], "Powerful (>8GB)": [] };
+    const levels = { "Light (<4GB)": [], "Standard (4-8GB)": [], "Powerful (>8GB)": [], "Ollama Cloud": [] };
     availableModels.forEach(m => {
+      if(m.name.startsWith("cloud:")){levels["Ollama Cloud"].push(m);return;}
       const gb = (m.size || 0) / 1e9;
       const key = gb >= 8 ? "Powerful (>8GB)" : gb >= 4 ? "Standard (4-8GB)" : "Light (<4GB)";
       levels[key].push(m);
@@ -1840,6 +1931,7 @@
     welcomeHint.textContent = settings.appLanguage === "ru" ? `\u041c\u043e\u0434\u0435\u043b\u044c: ${name} - \u0433\u043e\u0442\u043e\u0432\u0430.` : `Model: ${name} - ready.`;
     persist();
     renderModelDropdown();
+    if(name?.startsWith('cloud:'))welcomeHint.textContent=settings.appLanguage==='ru'?'Ollama Cloud: сообщения отправляются в облако.':'Ollama Cloud: messages are sent to the cloud.';
   }
 
   modelBtn.addEventListener("click", (e) => {
@@ -3281,7 +3373,7 @@
         addThinkingLine(`Using vision model: ${requestModel}`);
       }
     }
-    if (!ollamaRunning) {
+    if (!ollamaRunning && !requestModel?.startsWith('cloud:')) {
       return settings.appLanguage === "ru"
         ? "Ollama не запущена. Запусти Ollama и нажми на индикатор статуса в Musical AI."
         : "Ollama is not running. Start Ollama and click the status indicator in Musical AI.";
@@ -3344,6 +3436,27 @@
     abortController = requestController;
     renderTeam([]);
     try {
+      if(window.api?.pluginsList && settings.accessMode!=='plan' && !userImages?.length) {
+        const connections=await window.api.pluginsList();
+        const tools=connections.filter(p=>p.enabled&&p.state==='connected').flatMap(p=>p.tools.map(tool=>({...tool,pluginId:p.id,pluginName:p.name})));
+        if(tools.length) {
+          const context=await MusicalPlugins.run({messages:apiMessages,model:requestModel,tools,signal:requestController.signal,
+            authorize:async(tool,args)=>{
+              if(settings.accessMode==='plan')return false;
+              if(settings.accessMode!=='ask'||acceptedChangeChatId===currentChatId)return true;
+              const cancel=()=>closeApproval('deny');requestController.signal.addEventListener('abort',cancel,{once:true});
+              try{const choice=await requestChangeApproval('',`${tool.pluginName} / ${tool.name}\n${JSON.stringify(args,null,2)}`);if(choice==='chat')acceptedChangeChatId=currentChatId;return choice==='accept'||choice==='chat';}
+              finally{requestController.signal.removeEventListener('abort',cancel);}
+            },
+            execute:async(tool,args)=>{
+              const id=crypto.randomUUID();const cancel=()=>window.api.pluginsCancel(id);requestController.signal.addEventListener('abort',cancel,{once:true});
+              try{return await window.api.pluginsCall(tool.pluginId,tool.name,args,id);}finally{requestController.signal.removeEventListener('abort',cancel);}
+            },
+            onStatus:text=>{if(generationId===activeGenerationId){updateThinkingReasoning(text+'\n',false);addProgressItem(text);}}
+          });
+          if(context)apiMessages.push({role:'user',content:context});
+        }
+      }
       if (settings.teamEnabled && !userImages?.length) {
         const workers = [0, 1].map(i => availableModels.some(m => m.name === settings.workerModels?.[i]) ? settings.workerModels[i] : requestModel);
         const embeddedOnly = [requestModel, ...workers].every(name => name.startsWith("musical:"));
@@ -4857,7 +4970,7 @@
     ];
     const allModels = nativeCatalog ? [...extras, ...MODEL_CATALOG.filter(model => !model.vision && /^(qwen3:|qwen2\.5|llama3\.[12]:|deepseek-r1:|deepseek-coder:|mistral:)/.test(model.name))].map(model => ({ ...model, name: model.name === "qwen2.5:1.5b" ? "musical:qwen2.5-1.5b" : `musical:${model.name}` })) : [...MODEL_CATALOG];
     availableModels
-      .filter(m => m.name.startsWith("musical:") === nativeCatalog && !allModels.find(c => c.name === m.name))
+      .filter(m => !m.name.startsWith('cloud:') && m.name.startsWith("musical:") === nativeCatalog && !allModels.find(c => c.name === m.name))
       .forEach(m => allModels.push({
         name: m.name,
         desc: "Installed locally",

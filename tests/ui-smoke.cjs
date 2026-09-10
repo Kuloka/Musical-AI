@@ -4,6 +4,16 @@ const path = require('path');
 const assert = require('assert/strict');
 const root = path.resolve(__dirname, '..');
 const out = path.join(root, 'artifacts');
+const testCloud=require('../electron/ollama-cloud').createCloud(path.join(out,'ui-cloud'),require('electron').safeStorage,async()=>Response.json({models:[{name:'gpt-oss:120b'},{name:'test-cloud'}]}));
+ipcMain.handle('test:cloud-status',()=>testCloud.status());
+ipcMain.handle('test:cloud-save',(_e,key)=>testCloud.save(key));
+ipcMain.handle('test:cloud-models',()=>testCloud.models());
+ipcMain.handle('test:cloud-disconnect',()=>testCloud.disconnect());
+const pluginHost=require(process.argv.includes('--packaged') ? path.join(root,'dist/win-unpacked/resources/app.asar/electron/mcp-plugins.js') : '../electron/mcp-plugins').createPlugins(path.join(out,'ui-plugins'),path.join(out,'ui-projects'));
+ipcMain.handle('test:plugins-list',()=>pluginHost.list());
+ipcMain.handle('test:plugins-add',(_e,config)=>pluginHost.add(config));
+ipcMain.handle('test:plugins-toggle',(_e,id,enabled)=>pluginHost.toggle(id,enabled));
+ipcMain.handle('test:plugins-remove',(_e,id)=>pluginHost.remove(id));
 app.setPath('userData', path.join(out, 'ui-test-profile'));
 app.commandLine.appendSwitch('force-prefers-reduced-motion', 'reduce');
 const { createLocalRuntime, MODEL } = require('../electron/local-runtime');
@@ -43,6 +53,34 @@ app.whenReady().then(async () => {
   fs.writeFileSync(path.join(out, 'musical-welcome.png'), (await win.webContents.capturePage()).toPNG());
   assert.ok(await win.webContents.executeJavaScript(`document.querySelector('#localSetupCard').getBoundingClientRect().bottom < document.querySelector('.composer').getBoundingClientRect().top`), 'Setup must not overlap composer');
   console.log('Welcome screenshot saved');
+  if (process.argv.includes('--cloud')) {
+    await win.webContents.executeJavaScript("document.querySelector('#settingsBtn').click();document.querySelector('[data-settings-tab=cloud]').click();document.querySelector('#cloudApiKey').value='fixture-cloud-key';document.querySelector('#cloudAccountForm').requestSubmit()");
+    await waitFor(win,"document.querySelector('#cloudDisconnect').hidden === false && document.querySelectorAll('.cloud-model-row').length===2");
+    assert.ok(!fs.readFileSync(path.join(out,'ui-cloud','ollama-cloud.key'),'utf8').includes('fixture-cloud-key'));
+    await win.webContents.executeJavaScript("window.dispatchEvent(new CustomEvent('ollama-cloud-problem',{detail:{kind:'rate',message:'Too many requests'}}))");
+    assert.equal(await win.webContents.executeJavaScript("document.querySelector('#cloudPlansModal').classList.contains('show')"),false);
+    await win.webContents.executeJavaScript("window.dispatchEvent(new CustomEvent('ollama-cloud-problem',{detail:{kind:'billing',message:'Insufficient credits'}}))");
+    await new Promise(resolve=>setTimeout(resolve,300));
+    assert.equal(await win.webContents.executeJavaScript("document.querySelector('#cloudPlansModal').classList.contains('show')"),true);
+    assert.equal(await win.webContents.executeJavaScript("document.querySelector('#cloudPlansClose').getBoundingClientRect().width"),44);
+    assert.equal(await win.webContents.executeJavaScript("document.querySelector('#cloudPlansClose svg').getBoundingClientRect().width"),24);
+    fs.writeFileSync(path.join(out,'musical-cloud-plans.png'),(await win.webContents.capturePage()).toPNG());
+    await win.webContents.executeJavaScript("document.querySelector('#cloudPlansClose').click();document.querySelector('.cloud-model-row').click()");
+    assert.match(await win.webContents.executeJavaScript("document.querySelector('#modelLabel').textContent"),/cloud:gpt-oss/);
+    assert.deepEqual(errors,[]);testCloud.disconnect();console.log('PASS: encrypted Windows credentials, cloud selection, billing dialog, rate limits do not open pricing');win.destroy();app.quit();return;
+  }
+  if (process.argv.includes('--plugins')) {
+    for(const entry of pluginHost.list())await pluginHost.remove(entry.id);
+    fs.mkdirSync(path.join(out,'ui-projects'),{recursive:true});
+    await win.webContents.executeJavaScript("document.querySelector('#settingsBtn').click();document.querySelector('[data-settings-tab=plugins]').click();document.querySelector('#pluginForm').requestSubmit()");
+    await waitFor(win,"!!document.querySelector('#pluginsList .activity-switch')");
+    await win.webContents.executeJavaScript("document.querySelector('#pluginsList .activity-switch').click()");
+    await waitFor(win,"document.querySelector('#pluginsList').textContent.includes('connected') && document.querySelector('#pluginsList').textContent.includes('list_projects')");
+    await win.webContents.executeJavaScript("document.querySelector('#pluginsList details').open=true");
+    fs.writeFileSync(path.join(out,'musical-plugins.png'),(await win.webContents.capturePage()).toPNG());
+    assert.deepEqual(errors,[]);
+    await pluginHost.close();console.log('PASS: Plugins UI adds, enables and discovers real stdio tools under Electron');win.destroy();app.quit();return;
+  }
   if (process.argv.includes('--polish')) {
     const radius = await win.webContents.executeJavaScript("getComputedStyle(document.querySelector('.composer-field')).borderTopLeftRadius");
     await win.webContents.executeJavaScript("document.querySelector('#userInput').focus()");

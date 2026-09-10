@@ -267,7 +267,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
       </button>
     </div>
-    <nav class="settings-nav" aria-label="Settings sections"><button type="button" data-settings-tab="general" class="active">General</button><button type="button" data-settings-tab="models">Models</button><button type="button" data-settings-tab="skills">Skills</button><button type="button" data-settings-tab="discord">Discord Activity</button></nav>
+    <nav class="settings-nav" aria-label="Settings sections"><button type="button" data-settings-tab="general" class="active">General</button><button type="button" data-settings-tab="models">Models</button><button type="button" data-settings-tab="skills">Skills</button><button type="button" data-settings-tab="cloud">Ollama Cloud</button><button type="button" data-settings-tab="plugins">Plugins</button><button type="button" data-settings-tab="discord">Discord Activity</button></nav>
     <div class="modal-body settings-body">
       <section class="settings-section" data-settings-panel="general">
         <div>
@@ -301,6 +301,27 @@
         <label>Agent 1 <select id="workerModel0"></select></label>
         <label>Agent 2 <select id="workerModel1"></select></label>
       </section>
+      <section class="settings-block cloud-settings" data-settings-panel="cloud" hidden>
+        <div class="discord-heading"><h3>Ollama Cloud</h3><button id="cloudPlansBtn" type="button" class="catalog-btn">View plans</button></div>
+        <p id="cloudPrivacy">Cloud models send your messages and attached context to Ollama. Local models continue to run on your machine.</p>
+        <p id="cloudAccountStatus" role="status"></p>
+        <form id="cloudAccountForm"><label id="cloudKeyLabel" for="cloudApiKey">Ollama API key</label><input id="cloudApiKey" type="password" autocomplete="off" placeholder="Paste your API key" required><div><button type="button" class="catalog-btn" id="cloudGetKey">Sign in / create key</button><button class="catalog-btn" type="submit" id="cloudConnect">Connect account</button><button class="catalog-btn" type="button" id="cloudDisconnect">Disconnect</button></div></form>
+        <p id="cloudError" role="status"></p>
+        <div class="discord-heading"><h4 id="cloudModelsTitle">Cloud models</h4><button type="button" class="catalog-btn" id="cloudRefresh">Refresh</button></div><div id="cloudModelsList"></div>
+      </section>
+      <section class="settings-block plugins-settings" data-settings-panel="plugins" hidden>
+        <h3>Plugins</h3><p>MCP tools for your models. Enable a connection to make its tools available in chat.</p>
+        <form id="pluginForm">
+          <label>Name<input id="pluginName" value="Workspace" maxlength="80" required></label>
+          <label>Connection<select id="pluginType"><option value="builtin">Built-in Workspace</option><option value="stdio">Local MCP server (stdio)</option><option value="http">Remote MCP server (HTTP)</option></select></label>
+          <label id="pluginCommandRow" hidden>Executable<input id="pluginCommand" placeholder="node / npx / full executable path"></label>
+          <label id="pluginArgsRow" hidden>Arguments (JSON array)<input id="pluginArgs" value="[]" placeholder='["server.js"]'></label>
+          <label id="pluginUrlRow" hidden>MCP URL<input id="pluginUrl" placeholder="https://example.com/mcp"></label>
+          <p id="pluginTransportHint">Reads project folders and text files inside MusicalProject. No extra installation.</p>
+          <button class="catalog-btn" type="submit">Add connection</button>
+        </form>
+        <p id="pluginsError" role="status"></p><div id="pluginsList"></div>
+      </section>
       <section class="settings-block discord-settings" data-settings-panel="discord" hidden>
         <div class="discord-heading"><div><h3>Discord Activity</h3><p id="discordDescription"></p></div><button id="discordToggle" class="activity-switch" type="button" role="switch" aria-checked="false" aria-label="Discord Activity"><span></span></button></div>
         <p id="discordStatus" role="status"></p>
@@ -322,6 +343,13 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="cloudPlansModal" role="dialog" aria-modal="true" aria-labelledby="cloudPlansTitle">
+  <div class="modal cloud-plans-modal"><div class="modal-header"><h2 id="cloudPlansTitle">More room for your ideas</h2><button class="modal-close" type="button" id="cloudPlansClose" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="modal-body">
+    <p id="cloudPlansReason">Choose your Ollama Cloud plan. Payment is completed on ollama.com.</p>
+    <div class="cloud-plan-grid"><article><h3>Free</h3><div class="cloud-price">$0</div><p id="cloudFreeDesc">Starter cloud usage. Local models remain unlimited.</p><button type="button" class="catalog-btn" data-cloud-plan="free">View Free</button></article><article><h3>Pro</h3><div class="cloud-price">$20 <small>/ month</small></div><p id="cloudProDesc">More usage for everyday work with larger models.</p><button type="button" class="catalog-btn" data-cloud-plan="pro">View Pro</button></article><article><h3>Max</h3><div class="cloud-price">$100 <small>/ month</small></div><p id="cloudMaxDesc">More capacity for intensive work and multiple agents.</p><button type="button" class="catalog-btn" data-cloud-plan="max">View Max</button></article></div>
+    <p id="cloudPriceNote">Reference monthly prices checked September 9, 2026. Final pricing and API credit terms are shown by Ollama. This does not indicate your current plan.</p>
+  </div></div>
+</div>
 <!-- Models Modal -->
 <div class="modal-overlay" id="modelsModal">
   <div class="modal">
@@ -391,6 +419,7 @@
 </div>
 
 <script src="musical-ai.js"></script>
+<script src="plugins-chat.js"></script>
 <script src="renderer.js"></script>
 </body>
 </html>

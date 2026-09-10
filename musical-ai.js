@@ -1,9 +1,33 @@
 (function (root) {
   'use strict';
 
+  function cloudFetch(body, signal) {
+    signal?.throwIfAborted();
+    return new Promise((resolve,reject)=>{
+      const id=root.crypto.randomUUID();let controller,ended=false,off=()=>{};
+      const cleanup=()=>{off();signal?.removeEventListener('abort',abort);};
+      const fail=error=>{if(ended)return;ended=true;controller.error(error);cleanup();reject(error);};
+      const abort=()=>{root.api.cloudCancel(id);fail(new DOMException('Stopped','AbortError'));};
+      const stream=new ReadableStream({start(value){controller=value;},cancel(){root.api.cloudCancel(id);ended=true;cleanup();}});
+      off=root.api.onCloudEvent(event=>{
+        if(event.id!==id||ended)return;
+        if(event.type==='headers') {
+          if(event.kind)root.dispatchEvent?.(new CustomEvent('ollama-cloud-problem',{detail:event}));
+          resolve(new Response(stream,{status:event.status}));
+        } else if(event.type==='chunk')controller.enqueue(new TextEncoder().encode(event.text));
+        else if(event.type==='problem') {root.dispatchEvent?.(new CustomEvent('ollama-cloud-problem',{detail:event}));root.api.cloudCancel(id);fail(new Error(event.message));}
+        else if(event.type==='done'){ended=true;controller.close();cleanup();}
+        else if(event.type==='failed')fail(event.aborted?new DOMException(event.message,'AbortError'):new Error(event.message));
+      });
+      signal?.addEventListener('abort',abort,{once:true});
+      root.api.cloudRequest(id,body).catch(fail);
+    });
+  }
+
   // Translate the embedded server's OpenAI stream into the existing chat format.
   async function chatFetch(url, init) {
     const body = JSON.parse(init.body);
+    if (body.model.startsWith('cloud:')) return cloudFetch(body, init.signal);
     if (!body.model.startsWith('musical:')) return fetch(url, init);
     if (root.api?.localActivate) {
       const ready = await root.api.localActivate(body.model);

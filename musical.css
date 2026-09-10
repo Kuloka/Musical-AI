@@ -150,3 +150,40 @@ button:focus-visible,summary:focus-visible,select:focus-visible { outline:1px so
 .worker-picker-list button { display:block; width:100%; text-align:left; padding:9px 8px; font:inherit; color:var(--text-secondary); border:0; border-radius:4px; background:transparent; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .worker-picker-list button:hover,.worker-picker-list button[aria-selected=true] { background:var(--bg-hover); color:var(--text-primary); }
 @media (prefers-reduced-motion:reduce) { .worker-picker-trigger,.worker-picker-trigger::after,.worker-picker-list { transition:none; } }
+.plugins-settings h3 { font-size:1.2em; margin:0 0 10px; }
+.plugins-settings p,.plugins-settings summary { color:var(--text-secondary); font-size:.88em; line-height:1.6; }
+#pluginForm { margin:24px 0; display:grid; grid-template-columns:1fr 1fr; gap:14px 20px; }
+#pluginForm label { display:flex; flex-direction:column; gap:8px; font-size:.9em; min-width:0; }
+#pluginForm input,#pluginForm select { width:100%; background:var(--bg-surface); color:var(--text-primary); border:0; padding:11px 12px; border-radius:6px; font:inherit; }
+#pluginTransportHint,#pluginArgsRow,#pluginUrlRow { grid-column:1 / -1; }
+#pluginForm [type=submit] { justify-self:start; padding:10px 14px; background:var(--bg-hover); }
+.plugin-row { margin:24px 0; padding:16px 0; }
+.plugin-row summary { cursor:pointer; }
+.plugin-row .catalog-btn { margin:10px 12px 0 0; }
+#pluginsError { color:var(--text-secondary); overflow-wrap:anywhere; }
+.cloud-settings h3 { margin:0; font-size:1.3em; }
+.cloud-settings p { color:var(--text-secondary); font-size:.9em; line-height:1.6; }
+#cloudAccountForm { display:grid; gap:12px; margin:22px 0; }
+#cloudApiKey { color:var(--text-primary); background:var(--bg-surface); padding:12px 14px; border:0; border-radius:7px; font:inherit; }
+#cloudAccountForm button { margin-right:12px; padding:9px 12px; }
+#cloudConnect { background:var(--bg-hover); }
+.cloud-model-row { display:block; width:100%; padding:12px; text-align:left; background:none; color:var(--text-primary); border:0; border-radius:6px; cursor:pointer; font:inherit; }
+.cloud-model-row:hover { background:var(--bg-hover); }
+#cloudModelsList { margin-top:8px; }
+#cloudPlansModal { z-index:400; }
+.cloud-plans-modal { width:min(940px,94vw); background:var(--bg-main); border:0; border-radius:18px; padding:12px; }
+.cloud-plans-modal .modal-header { border:0; }
+.cloud-plan-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:28px 0; }
+.cloud-plan-grid article { background:var(--bg-surface); border-radius:12px; padding:24px; display:flex; flex-direction:column; }
+.cloud-plan-grid h3 { font-size:20px; margin:0 0 22px; }
+.cloud-price { font-size:34px; letter-spacing:-1px; }
+.cloud-price small { font-size:12px; color:var(--text-muted); letter-spacing:0; }
+.cloud-plan-grid p { font-size:13px; line-height:1.7; color:var(--text-secondary); margin:18px 0 24px; flex:1; }
+.cloud-plan-grid button { background:var(--bg-hover); padding:11px; border-radius:7px; color:var(--text-primary); cursor:pointer; }
+#cloudPlansReason { color:var(--text-secondary); line-height:1.6; }
+#cloudPriceNote { font-size:11px; line-height:1.6; color:var(--text-muted); }
+.cloud-plans-modal .modal-header h2 { font-size:25px; font-weight:550; letter-spacing:-.6px; }
+.cloud-plan-grid [data-cloud-plan=pro] { background:#dedede; color:#181818; }
+#cloudPlansClose { width:44px; height:44px; flex:0 0 44px; color:var(--text-secondary); }
+#cloudPlansClose svg { width:24px; height:24px; }
+#cloudPlansClose:hover { background:var(--bg-hover); color:var(--text-primary); }

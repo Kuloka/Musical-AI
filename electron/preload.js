@@ -1,6 +1,20 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+  cloudStatus: () => ipcRenderer.invoke('cloud:status'),
+  cloudSave: key => ipcRenderer.invoke('cloud:save', key),
+  cloudDisconnect: () => ipcRenderer.invoke('cloud:disconnect'),
+  cloudModels: force => ipcRenderer.invoke('cloud:models', force),
+  cloudOpen: page => ipcRenderer.invoke('cloud:open', page),
+  cloudRequest: (id, body) => ipcRenderer.invoke('cloud:request', id, body),
+  cloudCancel: id => ipcRenderer.invoke('cloud:cancel', id),
+  onCloudEvent: callback => { const listener=(_e,data)=>callback(data);ipcRenderer.on('cloud:event',listener);return ()=>ipcRenderer.removeListener('cloud:event',listener); },
+  pluginsList: () => ipcRenderer.invoke('plugins:list'),
+  pluginsAdd: config => ipcRenderer.invoke('plugins:add', config),
+  pluginsToggle: (id, enabled) => ipcRenderer.invoke('plugins:toggle', id, enabled),
+  pluginsRemove: id => ipcRenderer.invoke('plugins:remove', id),
+  pluginsCall: (id, name, args, requestId) => ipcRenderer.invoke('plugins:call', id, name, args, requestId),
+  pluginsCancel: requestId => ipcRenderer.invoke('plugins:cancel', requestId),
   discordStatus: () => ipcRenderer.invoke('discord:status'),
   discordMedia: () => ipcRenderer.invoke('discord:media'),
   discordImport: () => ipcRenderer.invoke('discord:import'),

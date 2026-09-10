@@ -1,5 +1,14 @@
 const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('api', {
+  cloudStatus: () => ipcRenderer.invoke('test:cloud-status'),
+  cloudSave: key => ipcRenderer.invoke('test:cloud-save',key),
+  cloudModels: () => ipcRenderer.invoke('test:cloud-models'),
+  cloudDisconnect: () => ipcRenderer.invoke('test:cloud-disconnect'),
+  cloudOpen: async () => ({}),
+  pluginsList: () => ipcRenderer.invoke('test:plugins-list'),
+  pluginsAdd: config => ipcRenderer.invoke('test:plugins-add', config),
+  pluginsToggle: (id, enabled) => ipcRenderer.invoke('test:plugins-toggle', id, enabled),
+  pluginsRemove: id => ipcRenderer.invoke('test:plugins-remove', id),
   dataGet: async () => ({ groups: [], chats: [] }), dataSave: async () => ({}),
   settingsGet: async () => ({ appLanguage: 'ru', theme: 'dark', teamEnabled: true, downloadedLanguages: ['en', 'ru'] }), settingsSave: async () => ({}),
   ollamaStatus: async () => ({ running: false, models: [] }),

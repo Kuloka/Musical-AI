@@ -2,11 +2,13 @@
   <img src="resources/branding/musical-github.png" alt="Musical AI - your ideas, your models, your machine" width="100%">
 </p>
 <p align="center">
-  <a href="https://github.com/Kuloka/Nevo-AI-place/releases/tag/1.18">Download for Windows</a> &nbsp; / &nbsp;
+  <a href="https://github.com/Kuloka/Musical-AI/releases/tag/1.18">Download for Windows</a> &nbsp; / &nbsp;
   <a href="#development">Development</a>
 </p>
 
 # Musical AI
+
+[Product website](https://kuloka.github.io/Musical-AI/) · [Latest Windows download](https://github.com/Kuloka/Musical-AI/releases/latest)
 
 Local desktop AI studio built with Electron. Musical AI can prepare a compact model without installing Ollama, and split a request between specialist agents before producing a combined answer.
 
@@ -66,7 +68,25 @@ Settings > Discord Activity enables Rich Presence using the built-in Musical AI 
 
 Custom HTTPS image URLs or Discord asset names override the default logo; clear the field to restore it. Add prepares a local image/GIF (up to 1024 pixels on its longest side), preserves animation, and warns about small images. Custom files need public hosting before Discord can display them. No bot token is required.
 
-## Brand assets
+## MCP Plugins
+
+Settings > Plugins manages local stdio and remote Streamable HTTP MCP connections. Add a connection, then enable it to start the server and discover tools. Local servers need their executable/runtime installed; HTTP connections currently support endpoints without OAuth or custom authentication headers.
+
+The built-in Workspace connection ships with the app and exposes `list_projects`, `list_files`, and `read_text_file` inside MusicalProject. It does not require Node.js to be installed separately. Imported connections are disabled by default; enabled connections reconnect on application startup. Settings are stored in `~/.musical-data/plugins.json`.
+
+On text requests, the main model can select tools through a bounded JSON planning loop (at most four calls, at most 40 advertised tools). Ask mode prompts before calls, Full access runs without those prompts, and Plan mode disables tool execution. Stop cancels pending calls. Text results are passed to the main model and subagents as context. Unsupported model output does not execute a tool. OAuth, a plugin marketplace, and plugin UI extensions are not included.
+
+Validation includes real stdio and HTTP MCP servers, approval denial, disabled connections, project path boundaries, and a Qwen 1.5B smoke run that selected a tool and used its result in the final answer. Other models may be less reliable at selecting tools.
+
+## Ollama Cloud
+
+Settings > Ollama Cloud connects through an Ollama API key created on the official account page. Keys are encrypted with Electron safeStorage (Windows DPAPI) in a separate local credential file and never returned to the chat renderer after saving. Saving a key does not verify the account or reveal its subscription; access is checked on model requests.
+
+The cloud catalog refreshes from `https://ollama.com/api/tags`. Models marked `cloud:` use the official hosted chat API, without a local Ollama installation. Messages, attachments and selected tool context for these models are sent to Ollama. Local models retain their existing local route. Cloud calls stream responses and support cancellation.
+
+The pricing dialog offers Free, Pro and Max links to Ollama's official pricing page. It opens for payment/credit errors, not simply because an account lacks a subscription. Authentication, rate limits and billing errors are handled separately. Displayed monthly prices are a dated reference; final checkout prices, available models and API credit terms are controlled by Ollama. Paid inference and checkout were not exercised with a live account.
+
+## Download brand images
 
 [Banner, 2560 x 1280](resources/branding/musical-banner.png) / [GitHub image, 1280 x 640](resources/branding/musical-github.png) / [Transparent icon](resources/branding/musical-icon.png)
 
