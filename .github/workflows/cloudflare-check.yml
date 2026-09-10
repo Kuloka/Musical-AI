@@ -30,3 +30,16 @@ jobs:
             console.log('PASS: Cloudflare serves the current English page and all language/effect assets.');
           })().catch(error => { console.error(error.message, error.cause?.code || ''); process.exitCode = 1; });
           JS
+      - name: Install browser checker
+        run: |
+          npm install --prefix "$RUNNER_TEMP/browser-check" playwright
+          "$RUNNER_TEMP/browser-check/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Load Cloudflare in desktop and mobile browsers
+        env:
+          NODE_PATH: ${{ runner.temp }}/browser-check/node_modules
+        run: node .github/scripts/cloudflare-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cloudflare-browser-check
+          path: artifacts/cloudflare-browser/
