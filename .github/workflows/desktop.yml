@@ -1,8 +1,13 @@
 name: Desktop packages
+
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
 permissions:
-  contents: read
+  contents: write
+
 jobs:
   package:
     strategy:
@@ -21,27 +26,36 @@ jobs:
           - os: macos-15
             platform: mac
             arch: arm64
+
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
+
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
       - run: npm ci
       - run: npm run check
       - run: npm test
+
       - name: Build native packages
         run: npx electron-builder --${{ matrix.platform }} --${{ matrix.arch }} --publish never
+
       - name: Smoke test packaged application (Linux)
         if: runner.os == 'Linux'
         run: xvfb-run -a npx electron --no-sandbox tests/native-shell-smoke.cjs
+
       - name: Smoke test packaged application
         if: runner.os != 'Linux'
         run: npx electron tests/native-shell-smoke.cjs
+
       - uses: actions/upload-artifact@v4
         with:
           name: Musical-AI-${{ matrix.platform }}-${{ matrix.arch }}
@@ -51,3 +65,24 @@ jobs:
             dist/*.AppImage
             dist/*.deb
             dist/*.dmg
+
+  release:
+    needs: package
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-files
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Musical AI ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            release-files/**/*.exe
+            release-files/**/*.AppImage
+            release-files/**/*.deb
+            release-files/**/*.dmg
