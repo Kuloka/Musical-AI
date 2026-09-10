@@ -478,7 +478,7 @@ function findOllamaExe() {
     const lookup = process.platform === 'win32' ? 'where ollama' : 'command -v ollama';
     const found = execSync(lookup, {
       stdio: ['ignore', 'pipe', 'ignore'],
-      shell: process.platform !== 'win32'
+      ...(process.platform === 'win32' ? {} : { shell: '/bin/sh' })
     })
       .toString().trim().split(/\r?\n/)[0];
     if (found && fs.existsSync(found)) return found;

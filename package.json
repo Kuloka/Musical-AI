@@ -1,6 +1,6 @@
 {
   "name": "musical-ai",
-  "version": "1.21.0",
+  "version": "1.22.0",
   "description": "Musical AI - local AI workspace with collaborative agents",
   "main": "electron/main.js",
   "scripts": {
@@ -23,7 +23,8 @@
       "!tests/**",
       "!resources/nevo-*",
       "!artifacts/**",
-      "!docs/**"
+      "!docs/**",
+      "!.github/**"
     ],
     "directories": {
       "buildResources": "build",
@@ -42,6 +43,24 @@
       "createDesktopShortcut": true,
       "shortcutName": "Musical AI",
       "guid": "b74d891e-393a-5bfb-895d-fb3070229109"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "resources/musical-logo.png",
+      "target": [
+        "dmg"
+      ],
+      "artifactName": "Musical-AI-macOS-1.22.0-${arch}.${ext}"
+    },
+    "linux": {
+      "category": "Utility",
+      "icon": "resources/musical-logo.png",
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "artifactName": "Musical-AI-Linux-1.22.0-${arch}.${ext}",
+      "maintainer": "Musical AI"
     }
   },
   "devDependencies": {
@@ -52,5 +71,8 @@
     "@modelcontextprotocol/sdk": "^1.30.0",
     "sharp": "^0.34.3",
     "zod": "^4.5.4"
+  },
+  "author": {
+    "name": "Musical AI"
   }
 }

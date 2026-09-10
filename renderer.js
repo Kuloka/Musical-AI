@@ -1706,6 +1706,13 @@
     $("localSetupBtn").textContent = ru ? "Быстрая настройка" : "Quick setup";
     $("localCancelBtn").textContent = ru ? "Отменить" : "Cancel";
     $("installOllamaBtn").textContent = ru ? "Установить Ollama" : "Install Ollama instead";
+    if (localRuntimeState.supported === false) {
+      $("localSetupTitle").textContent = ru ? "Выбери локальную или облачную модель" : "Choose a local or cloud model";
+      $("localSetupDescription").textContent = ru ? "На macOS и Linux локальные модели работают через Ollama. Облачные модели можно подключить в настройках Ollama Cloud." : "On macOS and Linux, use Ollama for local models or connect an API key in Ollama Cloud settings.";
+      $("installOllamaBtn").textContent = ru ? "Установить Ollama" : "Install Ollama";
+      if (!availableModels.length) welcomeHint.textContent = ru ? "Установи Ollama или подключи Ollama Cloud в настройках." : "Install Ollama or connect Ollama Cloud in settings.";
+    }
+    $("localSetupBtn").hidden = localRuntimeState.supported === false;
     if (!teamRows.length) $("teamHeading").textContent = ru ? "Работа сабагентов" : "Subagents working";
     $("agentSettingsTitle").textContent = ru ? "Модели сабагентов" : "Subagent models";
     $("agentSettingsHint").textContent = ru ? "Авто использует основную модель. Можно назначить разные установленные модели. Параллельность зависит от памяти и движка; ускорение не гарантировано." : "Auto shares the main model. You can assign different installed models. Parallelism depends on memory and engine; speedup is not guaranteed.";
