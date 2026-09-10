@@ -1,0 +1,16 @@
+{
+  "name": "musical-site-effects",
+  "private": true,
+  "scripts": {
+    "build": "node build.cjs"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^9.0.0",
+    "react": "19.2",
+    "react-dom": "19.2",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

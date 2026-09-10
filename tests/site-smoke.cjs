@@ -1,12 +1,20 @@
 const {app,BrowserWindow}=require('electron');const fs=require('fs'),path=require('path'),assert=require('assert/strict');
 const root=path.resolve(__dirname,'..'),out=path.join(root,'artifacts');
 app.setPath('userData',path.join(out,'site-test-profile'));
-app.commandLine.appendSwitch('force-prefers-reduced-motion','reduce');
+const motion=process.argv.includes('--motion');
+if(!motion)app.commandLine.appendSwitch('force-prefers-reduced-motion','reduce');
 app.whenReady().then(async()=>{
   const win=new BrowserWindow({width:1440,height:1050,show:false,frame:false,webPreferences:{offscreen:true}});const errors=[];
   win.webContents.on('console-message',(_e,level,message)=>{if(level===3&&!/Content Security/.test(message))errors.push(message);});
   await win.loadFile(path.join(root,'docs','index.html'));
   await new Promise(resolve=>setTimeout(resolve,350));
+  if(motion){
+    await new Promise(resolve=>setTimeout(resolve,1600));
+    assert.ok(await win.webContents.executeJavaScript("!!document.querySelector('#antigravity canvas')"));
+    await win.webContents.executeJavaScript("const card=document.querySelector('.button');const r=card.getBoundingClientRect();card.dispatchEvent(new PointerEvent('pointermove',{clientX:r.right-2,clientY:r.top+r.height/2,pointerType:'mouse'}));");
+    assert.ok(await win.webContents.executeJavaScript("Number(document.querySelector('.button').style.getPropertyValue('--edge-proximity'))>90"));
+    fs.writeFileSync(path.join(out,'musical-site-motion.png'),(await win.webContents.capturePage()).toPNG());
+  }
   assert.equal(await win.webContents.executeJavaScript('document.documentElement.scrollWidth <= innerWidth'),true);
   assert.ok(await win.webContents.executeJavaScript("[...document.images].every(image=>image.complete&&image.naturalWidth>0)"));
   await win.webContents.executeJavaScript("document.querySelector('#tab-cloud').click()");

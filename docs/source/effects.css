@@ -1,0 +1,21 @@
+#antigravity{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.38;overflow:hidden}
+body>.nav,body>main,body>footer{position:relative;z-index:1}
+.inside,.download{background:rgb(21 21 21 / 72%)}
+.hero-strings{opacity:.25}
+.border-glow-card{--card-bg:#161616;--border-radius:18px;--glow-padding:24px;--fill-opacity:.12;--glow-color:hsl(0 0% 90% / 65%);--glow-color-60:hsl(0 0% 90% / 39%);--glow-color-50:hsl(0 0% 90% / 32%);--glow-color-40:hsl(0 0% 90% / 26%);--glow-color-30:hsl(0 0% 90% / 19%);--glow-color-20:hsl(0 0% 90% / 13%);--glow-color-10:hsl(0 0% 90% / 6%);--gradient-one:radial-gradient(at 80% 55%,#eee 0,transparent 50%);--gradient-two:radial-gradient(at 69% 34%,#999 0,transparent 50%);--gradient-three:radial-gradient(at 8% 6%,#ddd 0,transparent 50%);--gradient-four:var(--gradient-one);--gradient-five:var(--gradient-two);--gradient-six:var(--gradient-three);--gradient-seven:var(--gradient-two);--gradient-base:linear-gradient(#aaa 0 100%);border-color:rgb(255 255 255 / 5%);box-shadow:none;transform:none;display:block}
+.border-glow-card::before,.border-glow-card::after{pointer-events:none}
+.feature-grid,.detail-grid{gap:20px}
+.feature-grid article,.detail-grid article{padding:28px;background:rgb(22 22 22 / 90%)}
+.feature-grid article h3{font-size:21px}
+.product-window.border-glow-card{--border-radius:12px;overflow:visible}
+.product-window img{border-radius:inherit}
+.demo.border-glow-card{--card-bg:#1e1e1e}
+.faq details.border-glow-card{margin:12px 0;padding:23px 25px}
+.demo-tabs{gap:8px}
+.demo-tabs button.border-glow-card{--border-radius:10px;display:flex;padding:16px 18px;border:1px solid #ffffff05}
+.demo-tabs button[aria-selected=true]{background:#242424}
+.button.border-glow-card{--card-bg:#e5e5e2;--border-radius:9px;display:inline-flex;background:var(--card-bg);isolation:isolate}
+.button.border-glow-card:hover{background:#fff;transform:translateY(-2px)}
+.border-glow-card:focus-visible{outline:2px solid #ccc;outline-offset:5px}
+@media(max-width:600px){#antigravity{opacity:.25}.feature-grid article,.detail-grid article{padding:24px}.faq details.border-glow-card{padding:20px}.demo{padding:26px}}
+@media(prefers-reduced-motion:reduce){#antigravity{display:none}.border-glow-card::before,.border-glow-card::after,.border-glow-card>.edge-light{display:none}}
