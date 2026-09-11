@@ -8,7 +8,7 @@
 
 # MultiMind
 
-[Product website](https://musical-ai.pages.dev/) · [Latest downloads](https://github.com/Kuloka/MultiMind/releases/latest)
+[Product website](https://multimind-ai.pages.dev/) · [Latest downloads](https://github.com/Kuloka/MultiMind/releases/latest)
 
 Local desktop AI studio built with Electron. MultiMind can prepare a compact model without installing Ollama, and split a request between specialist agents before producing a combined answer.
 
@@ -58,7 +58,23 @@ The starter engine and model are downloaded separately and are not bundled into 
 
 ## Downloading more models without Ollama
 
-The text catalog defaults to Without Ollama. Compatible GGUF text models download directly from the public model registry and run through the built-in CPU engine. The registry is a download source; the Ollama application is not needed. Downloads verify SHA256 and GGUF format and are saved in the managed runtime model index. Select the Ollama tab for the separate Ollama backend, including vision models.
+The **Without Ollama** tab has its own [models-catalog.json](models-catalog.json), independent of the Ollama and Ollama Cloud catalogs. It downloads single-file GGUF models directly from Hugging Face, using revision-pinned URLs, exact byte sizes and mandatory SHA256 verification. The existing llama.cpp **b10549** CPU runtime supports the Qwen2, Llama, Phi3 and Gemma2 architectures; no runtime upgrade is needed. This embedded engine currently supports Windows x64.
+
+The original Qwen2.5 1.5B Instruct Q4_K_M starter remains available. Five additional models each have **Q4_K_M** and **Q8_0** variants:
+
+| Model | File GB, Q4 / Q8 | Estimated engine RAM GiB, Q4 / Q8 | Minimum system RAM GiB, Q4 / Q8 |
+| --- | --- | --- | --- |
+| Qwen2.5 3B Instruct | 1.93 / 3.29 | 3.5 / 5 | 8 / 8 |
+| Llama 3.2 1B Instruct | 0.81 / 1.32 | 2 / 2.5 | 4 / 6 |
+| Llama 3.2 3B Instruct | 2.02 / 3.42 | 4 / 5.5 | 8 / 12 |
+| Phi-3.5 Mini Instruct | 2.39 / 4.06 | 6.5 / 8 | 12 / 16 |
+| Gemma 2 2B Instruct | 1.71 / 2.78 | 3.5 / 4.5 | 8 / 8 |
+
+File GB means decimal gigabytes; GiB means 1024³ bytes. RAM values are planning estimates for one 8192-token slot with CPU weights, KV cache and working buffers, not measured guarantees. System RAM includes additional headroom for the OS and app. Parallel agents, longer contexts and other applications increase memory needs; Phi's KV cache is comparatively large. Cards show RAM estimates and low-end / balanced / powerful-PC recommendations. Exact sizes, expected SHA256 hashes and source URLs are in the JSON; the starter estimates are 2.5 GiB engine RAM and 6 GiB system RAM.
+
+Catalog downloads retain `.part` files after cancellation or a network interruption and resume with HTTP Range. SHA256 and GGUF magic bytes are checked before a model is inserted atomically into `~/.multimind-data/runtime/llama-b10549/models.json`; existing installed models remain selectable.
+
+To extend the catalog, add an entry to `models-catalog.json` and restart/rebuild the app; no renderer or runtime edits are needed. Keep IDs unique, SHA256 mandatory, sizes in bytes, and recommendations one of `low`, `balanced`, `powerful`. Check the model's upstream license and runtime architecture support. Sources: [Qwen starter](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF), [Qwen 3B](https://huggingface.co/bartowski/Qwen2.5-3B-Instruct-GGUF), [Llama 1B](https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF), [Llama 3B](https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF), [Phi](https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF), [Gemma](https://huggingface.co/bartowski/gemma-2-2b-it-GGUF), [runtime architecture map](https://github.com/ggml-org/llama.cpp/blob/b10549/src/llama-arch.cpp). Sizes/hashes and public GGUF headers were checked against pinned revisions; this is not a full inference benchmark of every variant.
 
 The built-in engine loads one model at a time. Specialists sharing that model can use its parallel slots; specialists assigned different built-in models run sequentially to avoid replacing a model during an active response.
 

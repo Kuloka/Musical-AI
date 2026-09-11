@@ -88,7 +88,7 @@
   // ============================================================
   const messagesEl = $("messages");
   const welcomeEl = $("welcomeScreen");
-  const threadsBg = $("threadsBg");
+  const gatewayFlowBg = $("gatewayFlowBg");
   const welcomeTitle = $("welcomeTitle");
   const appEl = document.querySelector(".app");
   const mainArea = document.querySelector(".main-area");
@@ -1390,81 +1390,18 @@
     animateBlurText(welcomeTitle);
   }
 
-  function initThreadsBackground() {
-    if (!threadsBg) return;
-    const ctx = threadsBg.getContext("2d");
-    if (!ctx) return;
-    let raf = 0;
-    let mouseX = 0.5;
-    let mouseY = 0.5;
-    let targetX = 0.5;
-    let targetY = 0.5;
-    let lastFrame = 0;
 
-    const resize = () => {
-      const rect = threadsBg.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      threadsBg.width = Math.max(1, Math.round(rect.width * dpr));
-      threadsBg.height = Math.max(1, Math.round(rect.height * dpr));
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    const onMove = event => {
-      const rect = threadsBg.getBoundingClientRect();
-      targetX = rect.width ? (event.clientX - rect.left) / rect.width : 0.5;
-      targetY = rect.height ? (event.clientY - rect.top) / rect.height : 0.5;
-    };
-    const onLeave = () => {
-      targetX = 0.5;
-      targetY = 0.5;
-    };
-
-    const draw = time => {
-      if (document.hidden || isGenerating || welcomeEl?.style.display === "none") {
-        raf = requestAnimationFrame(draw);
-        return;
-      }
-      if (time - lastFrame < 33) {
-        raf = requestAnimationFrame(draw);
-        return;
-      }
-      lastFrame = time;
-      const rect = threadsBg.getBoundingClientRect();
-      const width = rect.width;
-      const height = rect.height;
-      mouseX += (targetX - mouseX) * 0.045;
-      mouseY += (targetY - mouseY) * 0.045;
-      ctx.clearRect(0, 0, width, height);
-      const accent = getComputedStyle(document.body).getPropertyValue("--text-primary").trim() || "rgba(255,255,255,0.72)";
-      const muted = getComputedStyle(document.body).getPropertyValue("--text-muted").trim() || "rgba(160,160,160,0.45)";
-      const t = time * 0.00045;
-      for (let i = 0; i < 34; i += 1) {
-        const p = i / 33;
-        const baseY = height * (0.18 + p * 0.62);
-        const amp = (20 + p * 34) * (0.45 + mouseY * 0.75);
-        ctx.beginPath();
-        for (let x = -20; x <= width + 20; x += 16) {
-          const nx = x / Math.max(width, 1);
-          const wave = Math.sin(nx * 7.2 + t * 2.3 + p * 6.0) + Math.sin(nx * 15.0 - t * 1.4 + p * 3.7) * 0.35;
-          const cursorPull = Math.sin((nx - mouseX) * Math.PI) * 34 * Math.max(0, 1 - Math.abs(nx - mouseX)) * p;
-          const y = baseY + wave * amp * (0.12 + nx * 0.72) + cursorPull;
-          if (x === -20) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.strokeStyle = i % 3 === 0 ? accent : muted;
-        ctx.globalAlpha = 0.035 + (1 - p) * 0.055;
-        ctx.lineWidth = 1 + (1 - p) * 1.8;
-        ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
-      raf = requestAnimationFrame(draw);
-    };
-
-    resize();
-    window.addEventListener("resize", resize);
-    welcomeEl?.addEventListener("mousemove", onMove);
-    welcomeEl?.addEventListener("mouseleave", onLeave);
-    raf = requestAnimationFrame(draw);
+  function initGatewayFlowBackground() {
+    if (!gatewayFlowBg || !window.MultiMindGatewayFlow) return;
+    window.MultiMindGatewayFlow.createGatewayFlow(gatewayFlowBg, {
+      paths: 58,
+      speed: 0.72,
+      lineOpacity: 0.105,
+      particleOpacity: 0.52,
+      particleSize: 2,
+      focusTarget: () => welcomeTitle,
+      focusY: 0.42
+    });
   }
 
   function initElectricComposerBorder() {
@@ -1726,6 +1663,7 @@
     const sub = document.querySelector(".welcome-sub");
     if (sub) sub.textContent = ru ? "Локальная AI-студия. Одна задача — совместная работа агентов." : "Your local AI studio. One task, a team of agents.";
   }
+
 
   function syncWorkerPicker(select) {
     let picker = select.parentElement.querySelector('.worker-picker');
@@ -4942,6 +4880,7 @@
     return true;
   }
 
+
   function renderModelsCatalog(filter) {
     const body = $("modelsModalBody");
     body.innerHTML = "";
@@ -4962,6 +4901,7 @@
     const installedNames = availableModels.map(m => m.name);
     const lower = (filter || "").toLowerCase();
     const nativeCatalog = localRuntimeState.supported !== false && settings.catalogBackend !== "ollama";
+    body.classList.toggle('native-gguf-catalog', nativeCatalog);
     const backendBar = document.createElement("div");
     backendBar.className = "catalog-backends";
     backendBar.style.gridColumn = "1 / -1";
@@ -4969,18 +4909,15 @@
     backendBar.querySelectorAll("button").forEach(button => button.addEventListener("click", () => { settings.catalogBackend = button.dataset.backend; persist(); renderModelsCatalog(filter); }));
     if (localRuntimeState.supported === false) backendBar.querySelector('[data-backend="local"]').hidden = true;
     body.appendChild(backendBar);
-    const extras = [
-      { name: "qwen2.5:0.5b", size: "0.40 GB", category: "Qwen", desc: "Qwen 2.5 0.5B" },
-      { name: "qwen2.5:1.5b", size: "1.12 GB", category: "Qwen", desc: "Qwen 2.5 1.5B" },
-      { name: "qwen2.5:3b", size: "1.9 GB", category: "Qwen", desc: "Qwen 2.5 3B" },
-      { name: "qwen2.5-coder:1.5b", size: "1.0 GB", category: "Code", desc: "Qwen 2.5 Coder 1.5B" },
-      { name: "qwen2.5-coder:3b", size: "1.9 GB", category: "Code", desc: "Qwen 2.5 Coder 3B" }
-    ];
-    const allModels = nativeCatalog ? [...extras, ...MODEL_CATALOG.filter(model => !model.vision && /^(qwen3:|qwen2\.5|llama3\.[12]:|deepseek-r1:|deepseek-coder:|mistral:)/.test(model.name))].map(model => ({ ...model, name: model.name === "qwen2.5:1.5b" ? "multimind:qwen2.5-1.5b" : `multimind:${model.name}` })) : [...MODEL_CATALOG];
+    const allModels = nativeCatalog ? (localRuntimeState.catalog || []).map(model => ({
+      ...model, name: model.id, displayName: `${model.name} · ${model.quantization}`,
+      size: formatSize(model.sizeBytes), category: model.family, desc: model.quantization
+    })) : [...MODEL_CATALOG];
     availableModels
       .filter(m => !m.name.startsWith('cloud:') && m.name.startsWith("multimind:") === nativeCatalog && !allModels.find(c => c.name === m.name))
       .forEach(m => allModels.push({
         name: m.name,
+        displayName: m.displayName,
         desc: "Installed locally",
         size: formatSize(m.size),
         category: "Installed"
@@ -4992,6 +4929,7 @@
       const matches = !lower ||
         family.toLowerCase().includes(lower) ||
         model.name.toLowerCase().includes(lower) ||
+        String(model.displayName || '').toLowerCase().includes(lower) ||
         String(model.desc || "").toLowerCase().includes(lower) ||
         String(model.category || "").toLowerCase().includes(lower);
       if (!matches) return;
@@ -5045,6 +4983,11 @@
         else statusHtml += `<span class="catalog-item-status">Ready</span>`;
         if (m.vision) statusHtml += `<span class="catalog-item-status">Vision</span>`;
         if (m.think) statusHtml += `<span class="catalog-item-status">Think</span>`;
+        if (nativeCatalog && m.ramGiB) {
+          const ru = settings.appLanguage === 'ru';
+          const recommendations = ru ? { low: 'для слабых машин', balanced: 'баланс', powerful: 'для мощных машин' } : { low: 'for low-end PCs', balanced: 'balanced', powerful: 'for powerful PCs' };
+          statusHtml += `<span class="catalog-item-status">≈ ${m.ramGiB} GiB RAM</span><span class="catalog-item-status">${escapeHtml(recommendations[m.recommendation])}</span><span class="catalog-size">${ru ? 'ОЗУ компьютера от' : 'System RAM from'} ${m.minRamGiB} GiB</span>`;
+        }
 
         let actionHtml = "";
         if (isPulling) {
@@ -5065,7 +5008,7 @@
         item.style.setProperty("--item-index", String(Math.min(index, 6)));
         item.innerHTML = `
           <div class="catalog-item-info">
-            <div class="catalog-item-name" title="${escapeHtml(m.name)}">${escapeHtml(m.name.replace(/^multimind:/, ""))}</div>
+            <div class="catalog-item-name" title="${escapeHtml(m.name)}">${escapeHtml(m.displayName || m.name.replace(/^multimind:/, ""))}</div>
             <div class="catalog-item-desc">${escapeHtml(m.desc || "")}</div>
             <div class="catalog-item-meta">${statusHtml}<span class="catalog-size">${escapeHtml(m.size || "")}</span></div>
           </div>
@@ -5207,7 +5150,7 @@
     renderSettings();
     renderProgress();
     renderSelectedModel(settings.selectedModel);
-    initThreadsBackground();
+    initGatewayFlowBackground();
     initElectricComposerBorder();
     typeWelcomeTitle();
     renderSidebar();

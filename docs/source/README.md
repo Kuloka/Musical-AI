@@ -1,6 +1,6 @@
 # Website effects
 
-Antigravity is the React Bits component supplied for this project, with window-relative pointer input, capped pixel density and background-tab pausing. BorderGlow uses the supplied CSS and its edge-proximity/angle calculation adapted to the existing HTML elements, preserving native links, buttons, details and tab listeners. Both use a monochrome palette and respect reduced motion.
+Gateway Flow is adapted from the supplied component into the shared root `gateway-flow.js` canvas engine so the static website and Electron app use the same offline implementation. Website options live in `effects.jsx`: its heading is the only click target. App options live in `renderer.js` and do not set an interactive target. Edit either small options object to tune density, speed, opacity and particle size independently. BorderGlow keeps the supplied edge-proximity calculation on the existing HTML elements.
 
 Source: https://github.com/DavidHDev/react-bits — copyright David Haz. See REACT-BITS-LICENSE.md. Components are integrated into the MultiMind website.
 

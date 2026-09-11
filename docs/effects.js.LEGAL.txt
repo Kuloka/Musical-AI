@@ -44,28 +44,6 @@ react-dom/cjs/react-dom-client.production.js:
    * LICENSE file in the root directory of this source tree.
    */
 
-use-sync-external-store/cjs/use-sync-external-store-shim.production.js:
-  /**
-   * @license React
-   * use-sync-external-store-shim.production.js
-   *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
-   *
-   * This source code is licensed under the MIT license found in the
-   * LICENSE file in the root directory of this source tree.
-   */
-
-use-sync-external-store/cjs/use-sync-external-store-shim/with-selector.production.js:
-  /**
-   * @license React
-   * use-sync-external-store-shim/with-selector.production.js
-   *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
-   *
-   * This source code is licensed under the MIT license found in the
-   * LICENSE file in the root directory of this source tree.
-   */
-
 react/cjs/react-jsx-runtime.production.js:
   /**
    * @license React
@@ -76,40 +54,3 @@ react/cjs/react-jsx-runtime.production.js:
    * This source code is licensed under the MIT license found in the
    * LICENSE file in the root directory of this source tree.
    */
-
-three/build/three.core.js:
-three/build/three.module.js:
-  /**
-   * @license
-   * Copyright 2010-2025 Three.js Authors
-   * SPDX-License-Identifier: MIT
-   */
-
-@react-three/fiber/dist/events-156d8d12.esm.js:
-  /**
-   * @license React
-   * react-reconciler-constants.production.js
-   *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
-   *
-   * This source code is licensed under the MIT license found in the
-   * LICENSE file in the root directory of this source tree.
-   */
-  /**
-  * @license React
-  * react-reconciler.production.js
-  *
-  * Copyright (c) Meta Platforms, Inc. and affiliates.
-  *
-  * This source code is licensed under the MIT license found in the
-  * LICENSE file in the root directory of this source tree.
-  */
-  /**
-  * @license React
-  * react-reconciler.development.js
-  *
-  * Copyright (c) Meta Platforms, Inc. and affiliates.
-  *
-  * This source code is licensed under the MIT license found in the
-  * LICENSE file in the root directory of this source tree.
-  */

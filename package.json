@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "check": "node --check electron/main.js && node --check electron/preload.js && node --check renderer.js && node --check multimind.js && node --check electron/local-runtime.js && node --check electron/storage-migration.js && node --check electron/app-skills.js && node --check electron/discord-activity.js && node --check electron/discord-media.js && node --check electron/mcp-plugins.js && node --check electron/workspace-mcp.js && node --check plugins-chat.js && node --check electron/ollama-cloud.js",
+    "check": "node --check electron/main.js && node --check electron/preload.js && node --check renderer.js && node --check multimind.js && node --check gateway-flow.js && node --check electron/local-runtime.js && node --check electron/storage-migration.js && node --check electron/app-skills.js && node --check electron/discord-activity.js && node --check electron/discord-media.js && node --check electron/mcp-plugins.js && node --check electron/workspace-mcp.js && node --check plugins-chat.js && node --check electron/ollama-cloud.js && node --check electron/model-catalog.js && node --check electron/model-download.js && node --check electron/managed-models.js",
     "fix:encoding": "node scripts/fix-mojibake.js --write",
     "dist:win": "electron-builder --win nsis portable",
     "test": "node --test tests/*.test.js"

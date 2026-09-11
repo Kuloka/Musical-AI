@@ -1,6 +1,6 @@
-import { Component, useEffect, useState } from 'react';
+import { Component, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import Antigravity from './Antigravity';
+import GatewayFlow from '../../gateway-flow.js';
 import './BorderGlow.css';
 import './effects.css';
 
@@ -33,18 +33,23 @@ class QuietFallback extends Component {
   render(){return this.state.failed ? null : this.props.children;}
 }
 function Background(){
-  const [quiet,setQuiet]=useState(reduced.matches);
-  const [visible,setVisible]=useState(!document.hidden);
+  const canvas=useRef(null);
   useEffect(()=>{
-    const motion=()=>setQuiet(reduced.matches), visibility=()=>setVisible(!document.hidden);
-    reduced.addEventListener('change',motion);
-    document.addEventListener('visibilitychange',visibility);
-    return ()=>{reduced.removeEventListener('change',motion);document.removeEventListener('visibilitychange',visibility);};
+    const flow=GatewayFlow.createGatewayFlow(canvas.current,{
+      paths:matchMedia('(max-width: 600px)').matches?42:72,
+      speed:.82,
+      lineOpacity:.14,
+      particleOpacity:.72,
+      particleSize:2.4,
+      focusTarget:()=>document.querySelector('.hero h1'),
+      interactiveTarget:()=>document.querySelector('.hero h1'),
+      focusY:.3
+    });
+    return ()=>flow.destroy();
   },[]);
-  if(quiet)return null;
-  return <Antigravity count={matchMedia('(max-width: 600px)').matches?130:300} magnetRadius={6} ringRadius={7} waveSpeed={0.4} waveAmplitude={1} particleSize={1.5} lerpSpeed={0.05} color="#fdfdff" autoAnimate particleVariance={1} paused={!visible}/>;
+  return <canvas ref={canvas}/>;
 }
 const layer=document.createElement('div');
-layer.id='antigravity';layer.setAttribute('aria-hidden','true');
+layer.id='gateway-flow';layer.setAttribute('aria-hidden','true');
 document.body.prepend(layer);
 createRoot(layer).render(<QuietFallback><Background/></QuietFallback>);

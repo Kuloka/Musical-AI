@@ -11,9 +11,13 @@ app.whenReady().then(async()=>{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   await win.loadURL('http://127.0.0.1:'+server.address().port);
   await new Promise(resolve=>setTimeout(resolve,1200));
+  assert.equal(await win.webContents.executeJavaScript("document.querySelector('#gateway-flow canvas').dataset.gatewayFlow"),'active');
+  assert.equal(await win.webContents.executeJavaScript("document.querySelector('#gateway-flow canvas').dataset.gatewayInteractive"),'true');
+  assert.equal(await win.webContents.executeJavaScript("document.querySelector('.hero-strings')"),null);
   if(motion){
     await new Promise(resolve=>setTimeout(resolve,1600));
-    assert.ok(await win.webContents.executeJavaScript("!!document.querySelector('#antigravity canvas')"));
+    assert.ok(await win.webContents.executeJavaScript("!!document.querySelector('#gateway-flow canvas')"));
+    await win.webContents.executeJavaScript("document.querySelector('.hero h1').click()");
     await win.webContents.executeJavaScript("const card=document.querySelector('.button');const r=card.getBoundingClientRect();card.dispatchEvent(new PointerEvent('pointermove',{clientX:r.right-2,clientY:r.top+r.height/2,pointerType:'mouse'}));");
     assert.ok(await win.webContents.executeJavaScript("Number(document.querySelector('.button').style.getPropertyValue('--edge-proximity'))>90"));
     fs.writeFileSync(path.join(out,'multimind-site-motion.png'),(await win.webContents.capturePage()).toPNG());

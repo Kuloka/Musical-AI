@@ -17,10 +17,11 @@ ipcMain.handle('test:plugins-remove',(_e,id)=>pluginHost.remove(id));
 app.setPath('userData', path.join(out, 'ui-test-profile'));
 app.commandLine.appendSwitch('force-prefers-reduced-motion', 'reduce');
 const { createLocalRuntime, MODEL } = require('../electron/local-runtime');
+const { catalog } = require('../electron/model-catalog');
 const runtime = createLocalRuntime(path.join(out, 'runtime-test'), process.argv.includes('--catalog') ? { port: 11439 } : {});
 app.on('window-all-closed', () => {});
 let started = false;
-ipcMain.handle('test:status', async () => process.argv.includes('--polish') ? ({ running:false, installed:true, supported:true, stage:'idle', models:[{name:'multimind:qwen2.5-1.5b',size:1117320736},{name:'multimind:deepseek-coder:6.7b',size:3800000000}] }) : started ? runtime.status() : ({ running: false, supported: true, stage: 'idle' }));
+ipcMain.handle('test:status', async () => process.argv.includes('--polish') ? ({ running:false, installed:true, supported:true, stage:'idle', catalog:catalog.models, models:[{name:'multimind:qwen2.5-1.5b',size:1117320736},{name:'multimind:deepseek-coder:6.7b',size:3800000000}] }) : started ? runtime.status() : ({ running: false, supported: true, stage: 'idle', catalog: catalog.models, models: [] }));
 ipcMain.handle('test:setup', async () => { await runtime.start(); started = true; return { ok: true, model: MODEL }; });
 ipcMain.handle('test:pull', async (event, model) => { const result = await runtime.setup(() => {}, model); started = true; setTimeout(() => { if (!event.sender.isDestroyed()) event.sender.send('test:pull-progress', { model, percent: 0 }); }, 100); return result; });
 async function waitFor(win, expression, timeout = 90000) {
@@ -51,8 +52,27 @@ app.whenReady().then(async () => {
   await waitFor(win, `document.querySelector('#localSetupBtn').textContent === ${JSON.stringify(process.env.MULTIMIND_PREVIEW_LANGUAGE === 'en' ? 'Quick setup' : 'Быстрая настройка')}`);
   await new Promise(resolve => setTimeout(resolve, 1800));
   fs.writeFileSync(path.join(out, 'multimind-welcome.png'), (await win.webContents.capturePage()).toPNG());
+  const backgroundState = await win.webContents.executeJavaScript("({api:!!window.MultiMindGatewayFlow,context:!!document.querySelector('#gatewayFlowBg').getContext('2d'),flow:document.querySelector('#gatewayFlowBg').dataset.gatewayFlow,interactive:document.querySelector('#gatewayFlowBg').dataset.gatewayInteractive})");
+  assert.deepEqual(backgroundState, { api: true, context: true, flow: 'active', interactive: 'false' }, JSON.stringify(errors));
+  assert.equal(await win.webContents.executeJavaScript("document.querySelector('#threadsBg')"), null);
   assert.ok(await win.webContents.executeJavaScript(`document.querySelector('#localSetupCard').getBoundingClientRect().bottom < document.querySelector('.composer').getBoundingClientRect().top`), 'Setup must not overlap composer');
   console.log('Welcome screenshot saved');
+  if (process.argv.includes('--catalog')) {
+    await win.webContents.executeJavaScript("document.querySelector('#modelSelector').click();document.querySelector('#ddOpenModels').click()");
+    await waitFor(win, "document.querySelectorAll('.catalog-item[data-model^=\"multimind:\"]').length === 11");
+    assert.equal(await win.webContents.executeJavaScript("[...document.querySelectorAll('.catalog-item')].filter(item=>item.textContent.includes('GiB RAM')).length"), 11);
+    assert.equal(await win.webContents.executeJavaScript("document.querySelector('.custom-gguf')"), null);
+    await win.webContents.executeJavaScript("document.querySelector('#modelsSearch').value='llama3.2-1b';document.querySelector('#modelsSearch').dispatchEvent(new Event('input'))");
+    assert.equal(await win.webContents.executeJavaScript("document.querySelectorAll('.catalog-item').length"), 2);
+    await new Promise(resolve => setTimeout(resolve, 300));
+    fs.writeFileSync(path.join(out, 'multimind-gguf-catalog.png'), (await win.webContents.capturePage()).toPNG());
+    await win.webContents.executeJavaScript("document.querySelector('#modelsSearch').value='';document.querySelector('#modelsSearch').dispatchEvent(new Event('input'));document.querySelector('[data-backend=ollama]').click()");
+    assert.equal(await win.webContents.executeJavaScript("document.querySelectorAll('.catalog-item[data-model^=\"multimind:\"]').length"), 0);
+    assert.ok(await win.webContents.executeJavaScript("document.querySelectorAll('.catalog-item').length > 0"));
+    assert.deepEqual(errors, []);
+    console.log('PASS: 11 local variants, RAM badges, no custom URL block and Ollama tab isolation');
+    win.destroy(); app.quit(); return;
+  }
   if (process.argv.includes('--cloud')) {
     await win.webContents.executeJavaScript("document.querySelector('#settingsBtn').click();document.querySelector('[data-settings-tab=cloud]').click();document.querySelector('#cloudApiKey').value='fixture-cloud-key';document.querySelector('#cloudAccountForm').requestSubmit()");
     await waitFor(win,"document.querySelector('#cloudDisconnect').hidden === false && document.querySelectorAll('.cloud-model-row').length===2");

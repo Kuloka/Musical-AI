@@ -17,7 +17,7 @@ jobs:
           node <<'JS'
           const fs = require('fs');
           (async () => {
-            const base = 'https://musical-ai.pages.dev/';
+            const base = 'https://multimind-ai.pages.dev/';
             for (const file of ['index.html', 'site-core.js', 'site.js', 'render.js', 'locales.js', 'locales-west.js', 'locales-east.js', 'effects.js', 'effects.css', 'assets/app.png']) {
               const url = base + (file === 'index.html' ? '' : file);
               const response = await fetch(url, { signal: AbortSignal.timeout(30000) });

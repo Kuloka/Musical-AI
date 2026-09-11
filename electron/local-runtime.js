@@ -2,16 +2,16 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const crypto = require('crypto');
 const { spawn } = require('child_process');
-const { Readable, Transform } = require('stream');
-const { pipeline } = require('stream/promises');
+const { download } = require('./model-download');
+const { catalog, catalogAsset } = require('./model-catalog');
+const { installManagedModel } = require('./managed-models');
 
-const MODEL = 'multimind:qwen2.5-1.5b';
+const MODEL = catalog.defaultModel;
 const ASSETS = {
   windows: { url: 'https://download.visualstudio.microsoft.com/download/pr/bd1c8d9d-ba95-4eee-bc6e-df1fcc876373/CC0FF0EB1DC3F5188AE6300FAEF32BF5BEEBA4BDD6E8E445A9184072096B713B/VC_redist.x64.exe', size: 25635768, sha: 'cc0ff0eb1dc3f5188ae6300faef32bf5beeba4bdd6e8e445a9184072096b713b' },
   engine: { url: 'https://github.com/ggml-org/llama.cpp/releases/download/b10549/llama-b10549-bin-win-cpu-x64.zip', size: 18581129, sha: '11d38f2ed878489b2c3d02b3d1a67683c02fbfb3d265876b9ede749a8dff5f1c' },
-  model: { url: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf', size: 1117320736, sha: '6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e' }
+  model: catalogAsset(MODEL)
 };
 
 async function registryAsset(model, signal) {
@@ -30,34 +30,6 @@ async function registryAsset(model, signal) {
   return { url: `${base}/blobs/${layer.digest}`, sha: layer.digest.slice(7), size: layer.size, manifest };
 }
 
-async function download(asset, destination, signal, progress) {
-  const part = destination + '.part';
-  let completed = fs.existsSync(part) ? fs.statSync(part).size : 0;
-  if (completed > asset.size) { fs.unlinkSync(part); completed = 0; }
-  if (completed < asset.size) {
-    const response = await fetch(asset.url, { signal, headers: completed ? { Range: `bytes=${completed}-` } : {} });
-    if (!response.ok) throw new Error(`Download failed: HTTP ${response.status}`);
-    if (response.status !== 206) completed = 0;
-    else if (!String(response.headers.get('content-range')).startsWith(`bytes ${completed}-`)) throw new Error('Invalid download range');
-    let lastUpdate = 0;
-    const meter = new Transform({ transform(chunk, encoding, callback) {
-      completed += chunk.length;
-      if (Date.now() - lastUpdate > 200) { progress(completed, asset.size); lastUpdate = Date.now(); }
-      callback(null, chunk);
-    } });
-    await pipeline(Readable.fromWeb(response.body), meter, fs.createWriteStream(part, { flags: completed ? 'a' : 'w' }), { signal });
-  }
-  signal.throwIfAborted();
-  const hash = crypto.createHash('sha256');
-  for await (const chunk of fs.createReadStream(part)) { signal.throwIfAborted(); hash.update(chunk); }
-  if (completed !== asset.size || hash.digest('hex') !== asset.sha) {
-    fs.unlinkSync(part);
-    throw new Error('Download verification failed. Please retry.');
-  }
-  fs.renameSync(part, destination);
-  progress(asset.size, asset.size);
-}
-
 function createLocalRuntime(dataDir, options = {}) {
   const port = options.port || 11435;
   const host = `http://127.0.0.1:${port}`;
@@ -68,7 +40,7 @@ function createLocalRuntime(dataDir, options = {}) {
   function models() {
     let index = {};
     try { index = JSON.parse(fs.readFileSync(indexFile, 'utf8')); } catch {}
-    const entries = Object.entries(index).filter(([name, item]) => name.startsWith('multimind:') && /^[a-f0-9]{64}\.gguf$/.test(item.file) && fs.existsSync(path.join(root, item.file))).map(([name, item]) => ({ name, size: item.size, file: path.join(root, item.file), backend: 'embedded', details: {} }));
+    const entries = Object.entries(index).filter(([name, item]) => name !== MODEL && name.startsWith('multimind:') && /^[a-f0-9]{64}\.gguf$/.test(item.file) && fs.existsSync(path.join(root, item.file))).map(([name, item]) => ({ name, displayName: item.displayName, size: item.size, file: path.join(root, item.file), backend: 'embedded', details: { verified: item.verified } }));
     if (fs.existsSync(defaultModelPath)) entries.unshift({ name: MODEL, size: ASSETS.model.size, file: defaultModelPath, backend: 'embedded', details: {} });
     return entries;
   }
@@ -154,8 +126,8 @@ function createLocalRuntime(dataDir, options = {}) {
       try {
         if (!supported) throw new Error('Quick setup currently supports Windows x64. Use Ollama on this platform.');
         report({ stage: 'manifest', completed: 0, total: 0, error: null });
-        const asset = requestedModel === MODEL ? ASSETS.model : await registryAsset(requestedModel, signal);
-        const modelPath = requestedModel === MODEL ? defaultModelPath : path.join(root, asset.sha + '.gguf');
+        const asset = catalogAsset(requestedModel);
+        requestedModel = asset.id;
         fs.mkdirSync(root, { recursive: true });
         await prepareWindowsLibraries(signal, report);
         report({ stage: 'engine', error: null, completed: 0, total: ASSETS.engine.size });
@@ -173,17 +145,8 @@ function createLocalRuntime(dataDir, options = {}) {
           fs.writeFileSync(marker, ASSETS.engine.sha);
           fs.unlinkSync(zip);
         }
-        report({ stage: 'model', completed: 0, total: asset.size });
-        if (!fs.existsSync(modelPath)) await download(asset, modelPath, signal, (completed, total) => report({ completed, total }));
-        const header = Buffer.alloc(4), fd = fs.openSync(modelPath, 'r');
-        try { fs.readSync(fd, header, 0, 4, 0); } finally { fs.closeSync(fd); }
-        if (header.toString() !== 'GGUF') throw new Error('This model format is not supported by the built-in engine');
-        if (requestedModel !== MODEL) {
-          let index = {}; try { index = JSON.parse(fs.readFileSync(indexFile, 'utf8')); } catch {}
-          index[requestedModel] = { file: asset.sha + '.gguf', size: asset.size };
-          fs.writeFileSync(indexFile, JSON.stringify(index, null, 2));
-          fs.writeFileSync(path.join(root, asset.sha + '.manifest.json'), JSON.stringify(asset.manifest, null, 2));
-        }
+        report({ stage: 'model', model: requestedModel, completed: 0, total: asset.size || 0 });
+        await installManagedModel(root, asset, signal, (completed, total) => report({ completed, total }), requestedModel === MODEL ? defaultModelPath : undefined);
         signal.throwIfAborted();
         report({ stage: 'starting', completed: 0, total: 0 });
         if (!child || requestedModel === MODEL) await start(requestedModel);
@@ -201,7 +164,7 @@ function createLocalRuntime(dataDir, options = {}) {
     start, setup, installed,
     cancel() { controller?.abort(); },
     stop() { controller?.abort(); child?.kill(); child = null; },
-    async status() { return { ...state, supported, installed: installed(), running: await healthy(), host, slots: activeSlots, model: activeModel, models: models().map(({ file, ...model }) => model), downloadBytes: ASSETS.engine.size + ASSETS.model.size + (supported && !windowsLibrariesPresent() ? ASSETS.windows.size : 0) }; }
+    async status() { return { ...state, supported, installed: installed(), running: await healthy(), host, slots: activeSlots, model: activeModel, catalog: catalog.models, models: models().map(({ file, ...model }) => model), downloadBytes: ASSETS.engine.size + ASSETS.model.size + (supported && !windowsLibrariesPresent() ? ASSETS.windows.size : 0) }; }
   };
 }
 module.exports = { createLocalRuntime, download, ASSETS, MODEL, registryAsset };

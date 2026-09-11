@@ -411,7 +411,20 @@ html, body {
 .main-area {
   flex: 1; display: flex; flex-direction: column;
   min-width: 0; background: var(--bg-main); position: relative;
+  isolation: isolate;
 }
+.gateway-flow-bg {
+  position: absolute;
+  inset: 34px 0 0;
+  width: 100%;
+  height: calc(100% - 34px);
+  z-index: 0;
+  color: var(--text-secondary);
+  pointer-events: none;
+  opacity: .52;
+}
+.main-area > :not(.gateway-flow-bg) { z-index: 1; }
+.workspace { position: relative; }
 .app-toolbar {
   height: 34px;
   flex-shrink: 0;
@@ -1028,16 +1041,6 @@ html, body {
 }
 .welcome-screen::before {
   content: none;
-}
-.threads-bg {
-  position: absolute;
-  top: 28px;
-  left: 0;
-  width: 100%;
-  height: 360px;
-  pointer-events: none;
-  opacity: 0.5;
-  z-index: 0;
 }
 .welcome-watermark {
   position: absolute;
@@ -2779,3 +2782,6 @@ body.has-composer-sheet .eb-layers {
   .models-card-grid { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
   #modelsModalBody { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* Embedded GGUF catalog. */
+.native-gguf-catalog .catalog-item-name { white-space: normal; overflow-wrap: anywhere; }
+.native-gguf-catalog .catalog-size { white-space: normal; }
