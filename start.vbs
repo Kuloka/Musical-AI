@@ -8,7 +8,7 @@ appDir = fso.GetParentFolderName(WScript.ScriptFullName)
 electronPath = fso.BuildPath(appDir, "node_modules\electron\dist\electron.exe")
 
 If Not fso.FileExists(electronPath) Then
-  MsgBox "Electron is not installed. Run install.cmd first.", 16, "Musical AI"
+  MsgBox "Electron is not installed. Run install.cmd first.", 16, "MultiMind"
   WScript.Quit 1
 End If
 

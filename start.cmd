@@ -1,8 +1,8 @@
 @echo off
-title Musical AI
+title MultiMind
 echo.
 echo   ========================================
-echo            Musical AI - Starting
+echo            MultiMind - Starting
 echo   ========================================
 echo.
 

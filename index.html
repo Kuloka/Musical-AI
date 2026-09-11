@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Musical AI</title>
+<title>MultiMind</title>
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="musical.css">
+<link rel="stylesheet" href="multimind.css">
 </head>
 <body>
 <header class="window-titlebar" id="windowTitlebar">
-  <span class="window-brand">Musical AI</span>
+  <span class="window-brand">MultiMind</span>
   <div class="window-controls">
     <button type="button" data-window="minimize" aria-label="Minimize"><svg viewBox="0 0 12 12"><path d="M1 6h10"/></svg></button>
     <button type="button" data-window="maximize" aria-label="Maximize or restore"><svg viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8"/></svg></button>
@@ -22,9 +22,9 @@
   <!-- Sidebar / tab -->
   <aside class="sidebar" id="sidebar">
     <div class="side-header">
-      <div class="side-logo" aria-label="Musical AI">
-        <svg class="musical-mark-img" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M40 141 L59 141 L82 73 L128 185 L174 73 L197 141 L216 141" fill="none" stroke="#bdbdbd" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"><animate id="sidebarLogoMotion" begin="indefinite" attributeName="d" values="M40 141 L59 141 L82 73 L128 185 L174 73 L197 141 L216 141;M40 141 L59 141 L82 155 L128 202 L174 73 L197 141 L216 141;M40 141 L59 141 L82 73 L128 185 L174 73 L197 141 L216 141;M40 141 L59 141 L82 182 L128 65 L174 182 L197 141 L216 141;M40 141 L59 141 L82 73 L128 185 L174 73 L197 141 L216 141" dur="3.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.25;.5;.75;1" keySplines=".4 0 .2 1;.4 0 .2 1;.4 0 .2 1;.4 0 .2 1"/></path></svg>
-        <span class="musical-wordmark">Musical<span>AI</span></span>
+      <div class="side-logo" aria-label="MultiMind">
+        <svg class="multimind-mark-img" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M40 141 L59 141 L82 73 L128 185 L174 73 L197 141 L216 141" fill="none" stroke="#bdbdbd" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"><animate id="sidebarLogoMotion" begin="indefinite" attributeName="d" values="M40 141 L59 141 L82 73 L128 185 L174 73 L197 141 L216 141;M40 141 L59 141 L82 155 L128 202 L174 73 L197 141 L216 141;M40 141 L59 141 L82 73 L128 185 L174 73 L197 141 L216 141;M40 141 L59 141 L82 182 L128 65 L174 182 L197 141 L216 141;M40 141 L59 141 L82 73 L128 185 L174 73 L197 141 L216 141" dur="3.2s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.25;.5;.75;1" keySplines=".4 0 .2 1;.4 0 .2 1;.4 0 .2 1;.4 0 .2 1"/></path></svg>
+        <span class="multimind-wordmark">MultiMind</span>
       </div>
       <div class="side-actions">
         <div class="status-pill" id="statusPill" title="Ollama status">
@@ -173,7 +173,7 @@
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
             <input type="file" id="fileInput" accept="image/*,.txt,.md,.json,.js,.ts,.py,.html,.css,.java,.c,.cpp,.rs,.go" multiple style="display:none">
-            <textarea id="userInput" rows="1" placeholder="Ask Musical AI anything..." autofocus></textarea>
+            <textarea id="userInput" rows="1" placeholder="Ask MultiMind anything..." autofocus></textarea>
             <button class="composer-send" id="sendBtn" disabled title="Send (Enter)">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
             </button>
@@ -244,7 +244,7 @@
       </div>
       <aside class="side-panel" id="sidePanel">
         <div class="panel-header">
-          <span>Musical AI actions</span>
+          <span>MultiMind actions</span>
           <button class="panel-close" id="closePanelBtn" title="Close panel" aria-label="Close panel" data-tooltip="Close panel">&times;</button>
         </div>
         <div class="panel-progress">
@@ -317,7 +317,7 @@
           <label id="pluginCommandRow" hidden>Executable<input id="pluginCommand" placeholder="node / npx / full executable path"></label>
           <label id="pluginArgsRow" hidden>Arguments (JSON array)<input id="pluginArgs" value="[]" placeholder='["server.js"]'></label>
           <label id="pluginUrlRow" hidden>MCP URL<input id="pluginUrl" placeholder="https://example.com/mcp"></label>
-          <p id="pluginTransportHint">Reads project folders and text files inside MusicalProject. No extra installation.</p>
+          <p id="pluginTransportHint">Reads project folders and text files inside MultiMindProject. No extra installation.</p>
           <button class="catalog-btn" type="submit">Add connection</button>
         </form>
         <p id="pluginsError" role="status"></p><div id="pluginsList"></div>
@@ -397,7 +397,7 @@
       </button>
     </div>
     <div class="modal-body">
-      <p class="approval-text" id="approvalText">Musical AI wants to edit a file.</p>
+      <p class="approval-text" id="approvalText">MultiMind wants to edit a file.</p>
       <button class="catalog-btn primary approval-action" id="approvalAcceptBtn">Accept</button>
       <button class="catalog-btn approval-action" id="approvalAcceptChatBtn">Accept in this chat</button>
       <button class="catalog-btn danger approval-action" id="approvalDenyBtn">Denied</button>
@@ -418,7 +418,7 @@
   </div>
 </div>
 
-<script src="musical-ai.js"></script>
+<script src="multimind.js"></script>
 <script src="plugins-chat.js"></script>
 <script src="renderer.js"></script>
 </body>

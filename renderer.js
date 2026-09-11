@@ -1,5 +1,5 @@
 /* ============================================
-   Musical AI Renderer
+   MultiMind Renderer
    Chat-first assistant. Ollama-powered.
    ============================================ */
 
@@ -207,7 +207,7 @@
       textAI: "Text AI",
       generationAI: "Generation AI",
       chooseModel: "Choose model",
-      askPlaceholder: "Ask Musical AI anything...",
+      askPlaceholder: "Ask MultiMind anything...",
       modelSearch: "Search models...",
       folderPlaceholder: "Folder name...",
       setupTitle: "Clarify the task",
@@ -253,10 +253,10 @@
       computeMode: "Compute mode",
       computeModeDesc: "Auto uses the best available device. CPU is safer for PCs without a GPU.",
       progress: "Progress",
-      musicalActions: "Musical AI actions",
+      multimindActions: "MultiMind actions",
       codingPreview: "Coding preview",
       approvalTitle: "Ask before changes",
-      approvalDefault: "Musical AI wants to edit a file.",
+      approvalDefault: "MultiMind wants to edit a file.",
       accept: "Accept",
       acceptInChat: "Accept in this chat",
       denied: "Denied",
@@ -324,7 +324,7 @@
       "textAI": "Text AI",
       "generationAI": "Generation AI",
       "chooseModel": "\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u043c\u043e\u0434\u0435\u043b\u044c",
-      "askPlaceholder": "\u0421\u043f\u0440\u043e\u0441\u0438\u0442\u0435 Musical AI \u043e \u0447\u0451\u043c \u0443\u0433\u043e\u0434\u043d\u043e...",
+      "askPlaceholder": "\u0421\u043f\u0440\u043e\u0441\u0438\u0442\u0435 MultiMind \u043e \u0447\u0451\u043c \u0443\u0433\u043e\u0434\u043d\u043e...",
       "modelSearch": "\u041f\u043e\u0438\u0441\u043a \u043c\u043e\u0434\u0435\u043b\u0435\u0439...",
       "folderPlaceholder": "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043f\u0430\u043f\u043a\u0438...",
       "setupTitle": "\u0423\u0442\u043e\u0447\u043d\u0438\u0442\u044c \u0437\u0430\u0434\u0430\u0447\u0443",
@@ -370,10 +370,10 @@
       "computeMode": "\u0420\u0435\u0436\u0438\u043c \u0432\u044b\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u0439",
       "computeModeDesc": "Auto \u0432\u044b\u0431\u0438\u0440\u0430\u0435\u0442 \u043b\u0443\u0447\u0448\u0435\u0435 \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432\u043e. CPU \u043d\u0430\u0434\u0451\u0436\u043d\u0435\u0435 \u0434\u043b\u044f \u041f\u041a \u0431\u0435\u0437 \u0432\u0438\u0434\u0435\u043e\u043a\u0430\u0440\u0442\u044b.",
       "progress": "\u041f\u0440\u043e\u0433\u0440\u0435\u0441\u0441",
-      "musicalActions": "\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u044f Musical AI",
+      "multimindActions": "\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u044f MultiMind",
       "codingPreview": "\u041f\u0440\u0435\u0432\u044c\u044e \u043a\u043e\u0434\u0430",
       "approvalTitle": "\u0421\u043f\u0440\u043e\u0441\u0438\u0442\u044c \u043f\u0435\u0440\u0435\u0434 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f\u043c\u0438",
-      "approvalDefault": "Musical AI \u0445\u043e\u0447\u0435\u0442 \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0444\u0430\u0439\u043b.",
+      "approvalDefault": "MultiMind \u0445\u043e\u0447\u0435\u0442 \u0438\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0444\u0430\u0439\u043b.",
       "accept": "\u041f\u0440\u0438\u043d\u044f\u0442\u044c",
       "acceptInChat": "\u041f\u0440\u0438\u043d\u044f\u0442\u044c \u0432 \u044d\u0442\u043e\u043c \u0447\u0430\u0442\u0435",
       "denied": "\u041e\u0442\u043a\u043b\u043e\u043d\u0438\u0442\u044c",
@@ -441,7 +441,7 @@
       recent: "Reciente",
       models: "Modelos",
       chooseModel: "Elegir modelo",
-      askPlaceholder: "Pregunta a Musical AI cualquier cosa...",
+      askPlaceholder: "Pregunta a MultiMind cualquier cosa...",
       modelSearch: "Buscar modelos...",
       setupTitle: "Aclarar tarea",
       access: { ask: "Preguntar antes de cambios", auto: "Editar automaticamente", plan: "Modo plan", full: "Acceso completo" },
@@ -463,7 +463,7 @@
       recent: "Recent",
       models: "Modeles",
       chooseModel: "Choisir un modele",
-      askPlaceholder: "Demandez n'importe quoi a Musical AI...",
+      askPlaceholder: "Demandez n'importe quoi a MultiMind...",
       modelSearch: "Rechercher des modeles...",
       setupTitle: "Preciser la tache",
       access: { ask: "Demander avant modifications", auto: "Modifier automatiquement", plan: "Mode plan", full: "Acces complet" },
@@ -485,7 +485,7 @@
       recent: "Zuletzt",
       models: "Modelle",
       chooseModel: "Modell wahlen",
-      askPlaceholder: "Frag Musical AI alles...",
+      askPlaceholder: "Frag MultiMind alles...",
       modelSearch: "Modelle suchen...",
       setupTitle: "Aufgabe klaren",
       access: { ask: "Vor Anderungen fragen", auto: "Automatisch bearbeiten", plan: "Planmodus", full: "Voller Zugriff" },
@@ -507,7 +507,7 @@
       recent: "Recentes",
       models: "Modelos",
       chooseModel: "Escolher modelo",
-      askPlaceholder: "Pergunte qualquer coisa ao Musical AI...",
+      askPlaceholder: "Pergunte qualquer coisa ao MultiMind...",
       modelSearch: "Buscar modelos...",
       setupTitle: "Esclarecer tarefa",
       access: { ask: "Perguntar antes de alterar", auto: "Editar automaticamente", plan: "Modo plano", full: "Acesso total" },
@@ -529,7 +529,7 @@
       recent: "Recenti",
       models: "Modelli",
       chooseModel: "Scegli modello",
-      askPlaceholder: "Chiedi qualsiasi cosa a Musical AI...",
+      askPlaceholder: "Chiedi qualsiasi cosa a MultiMind...",
       modelSearch: "Cerca modelli...",
       setupTitle: "Chiarisci attivita",
       access: { ask: "Chiedi prima delle modifiche", auto: "Modifica automaticamente", plan: "Modalita piano", full: "Accesso completo" },
@@ -551,7 +551,7 @@
       recent: "Son",
       models: "Modeller",
       chooseModel: "Model sec",
-      askPlaceholder: "Musical AI'ya istedigini sor...",
+      askPlaceholder: "MultiMind'ya istedigini sor...",
       modelSearch: "Model ara...",
       setupTitle: "Gorevi netlestir",
       access: { ask: "Degisiklikten once sor", auto: "Otomatik duzenle", plan: "Plan modu", full: "Tam erisim" },
@@ -593,7 +593,7 @@
       projects: "\u041f\u0440\u043e\u0454\u043a\u0442\u0438",
       recent: "\u041d\u0435\u0434\u0430\u0432\u043d\u0456",
       models: "\u041c\u043e\u0434\u0435\u043b\u0456",
-      askPlaceholder: "\u0417\u0430\u043f\u0438\u0442\u0430\u0439 Musical AI \u043f\u0440\u043e \u0449\u043e \u0437\u0430\u0432\u0433\u043e\u0434\u043d\u043e...",
+      askPlaceholder: "\u0417\u0430\u043f\u0438\u0442\u0430\u0439 MultiMind \u043f\u0440\u043e \u0449\u043e \u0437\u0430\u0432\u0433\u043e\u0434\u043d\u043e...",
       access: { ask: "\u041f\u0438\u0442\u0430\u0442\u0438 \u043f\u0435\u0440\u0435\u0434 \u0437\u043c\u0456\u043d\u0430\u043c\u0438", auto: "\u0420\u0435\u0434\u0430\u0433\u0443\u0432\u0430\u0442\u0438 \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u043d\u043e", plan: "\u0420\u0435\u0436\u0438\u043c \u043f\u043b\u0430\u043d\u0443", full: "\u041f\u043e\u0432\u043d\u0438\u0439 \u0434\u043e\u0441\u0442\u0443\u043f" },
       motivationLines: ["\u0417\u0431\u0435\u0440\u0438 \u0442\u0435, \u0449\u043e \u0434\u0430\u0432\u043d\u043e \u0443\u044f\u0432\u043b\u044f\u0454\u0448.", "\u0417\u0440\u043e\u0431\u0438 \u0456\u0434\u0435\u044e \u0436\u0438\u0432\u043e\u044e.", "\u0422\u0432\u043e\u044f \u043d\u0430\u0441\u0442\u0443\u043f\u043d\u0430 \u0432\u0435\u0440\u0441\u0456\u044f \u043f\u043e\u0447\u0438\u043d\u0430\u0454\u0442\u044c\u0441\u044f \u0442\u0443\u0442."],
     },
@@ -815,7 +815,7 @@
     if (s) settings = Object.assign(settings, s);
     if (!settings.appLanguage) settings.appLanguage = "en";
     if (!settings.theme) settings.theme = "dark";
-    if (!settings.musicalThemeApplied) { settings.theme = "dark"; settings.musicalThemeApplied = true; }
+    if (!settings.multimindThemeApplied) { settings.theme = "dark"; settings.multimindThemeApplied = true; }
     if (!settings.computeMode) settings.computeMode = "auto";
     if (!settings.selectedFluxVariant) settings.selectedFluxVariant = null;
     if (!settings.preferredWebSources || typeof settings.preferredWebSources !== "object") settings.preferredWebSources = {};
@@ -829,7 +829,7 @@
   function migrateBrandNamesInData() {
     let changed = false;
     const rename = value => repairMojibakeText(String(value || ""))
-      .replace(/^(Nebula|Nevo)Project/i, "MusicalProject");
+      .replace(/^(Musical|Nebula|Nevo)Project/i, "MultiMindProject");
     data.groups.forEach(group => {
       const nextName = rename(group.name);
       const nextFolderName = rename(group.folderName || group.name);
@@ -968,7 +968,7 @@
         row.className = "panel-app-card";
         row.innerHTML = `
           <div class="panel-app-title">App preview</div>
-          <div class="panel-app-name">${escapeHtml(item.name || "Musical AI app")}</div>
+          <div class="panel-app-name">${escapeHtml(item.name || "MultiMind app")}</div>
           <div class="panel-app-grid">
             <span>Interface</span><strong>${escapeHtml(item.interface || "Generated UI")}</strong>
             <span>Entry</span><strong>${escapeHtml(item.entry || "main.txt")}</strong>
@@ -1023,7 +1023,7 @@
     return {
       kind: "overview",
       key: "__overview",
-      name: file.replace(/\.[^.]+$/, "") || "Musical AI app",
+      name: file.replace(/\.[^.]+$/, "") || "MultiMind app",
       interface: iface,
       entry,
       run
@@ -1199,7 +1199,7 @@
   $('pluginType').addEventListener('change',()=>{
     const type=$('pluginType').value;
     $('pluginCommandRow').hidden=$('pluginArgsRow').hidden=type!=='stdio';$('pluginUrlRow').hidden=type!=='http';
-    $('pluginTransportHint').textContent=type==='builtin'?'Reads project folders and text files inside MusicalProject. No extra installation.':type==='stdio'?'Enabling starts the executable on your computer. Its runtime must already be installed.':'Streamable HTTP endpoint. OAuth and custom authentication headers are not supported yet.';
+    $('pluginTransportHint').textContent=type==='builtin'?'Reads project folders and text files inside MultiMindProject. No extra installation.':type==='stdio'?'Enabling starts the executable on your computer. Its runtime must already be installed.':'Streamable HTTP endpoint. OAuth and custom authentication headers are not supported yet.';
   });
   $('pluginForm').addEventListener('submit',async event=>{
     event.preventDefault();$('pluginsError').textContent='';const button=event.target.querySelector('[type=submit]');button.disabled=true;
@@ -1216,12 +1216,12 @@
   function renderDiscordSettings() {
     const ru = settings.appLanguage === 'ru';
     $('discordToggle').setAttribute('aria-checked', String(settings.discordActivity?.enabled === true));
-    $('discordDescription').textContent = ru ? 'Показывать Musical AI в вашем профиле Discord.' : 'Show Musical AI on your Discord profile.';
+    $('discordDescription').textContent = ru ? 'Показывать MultiMind в вашем профиле Discord.' : 'Show MultiMind on your Discord profile.';
     if (document.activeElement !== $('discordImageUrl')) $('discordImageUrl').value = settings.discordActivity?.image || '';
     $('discordImageLinkLabel').textContent = ru ? 'Ссылка на изображение или имя ресурса Discord' : 'Image URL or Discord asset name';
     $('discordImageHelp').textContent = ru ? 'Discord использует публичную HTTPS-ссылку. Файл из Add сохраняется локально: разместите подготовленное изображение и вставьте ссылку сюда. GIF работает по ссылке; загруженные ресурсы Discord — без анимации.' : 'Discord uses a public HTTPS URL. Add prepares a local file: host the prepared image and paste its URL here. GIF works by URL; uploaded Discord assets are static.';
-    $('discordImageUrl').placeholder = ru ? 'Пусто — анимированный логотип Musical AI' : 'Leave empty for the animated Musical AI logo';
-    $('discordImageHelp').textContent = (ru ? 'По умолчанию в Discord играет анимация струны Musical AI. Для своей картинки вставьте публичную HTTPS-ссылку. ' : 'Discord uses the animated Musical AI string logo by default. For a custom image, paste a public HTTPS URL. ') + (ru ? 'Add подготавливает локальный файл для размещения.' : 'Add prepares a local file for hosting.');
+    $('discordImageUrl').placeholder = ru ? 'Пусто — анимированный логотип MultiMind' : 'Leave empty for the animated MultiMind logo';
+    $('discordImageHelp').textContent = (ru ? 'По умолчанию в Discord играет анимация струны MultiMind. Для своей картинки вставьте публичную HTTPS-ссылку. ' : 'Discord uses the animated MultiMind string logo by default. For a custom image, paste a public HTTPS URL. ') + (ru ? 'Add подготавливает локальный файл для размещения.' : 'Add prepares a local file for hosting.');
     $('discordExportImage').textContent = ru ? 'Сохранить подготовленный файл' : 'Save prepared image';
     if (discordMediaPreview) {
       const m = discordMediaPreview;
@@ -1293,8 +1293,8 @@
 
   function applyAppLanguageBasics() {
     document.documentElement.lang = settings.appLanguage || "en";
-    document.title = "Musical AI";
-    updateMusicalControls();
+    document.title = "MultiMind";
+    updateMultiMindControls();
     const textById = {
       setupTitle: t("setupTitle"),
       groupModalTitle: t("newFolder"),
@@ -1332,7 +1332,7 @@
     const progressTitle = document.querySelector(".progress-head > span");
     if (progressTitle) progressTitle.textContent = t("progress");
     const panelTitle = document.querySelector(".panel-header > span");
-    if (panelTitle) panelTitle.textContent = t("musicalActions");
+    if (panelTitle) panelTitle.textContent = t("multimindActions");
     const panelPreviewTitle = document.querySelector(".panel-progress-title");
     if (panelPreviewTitle) panelPreviewTitle.textContent = t("codingPreview");
     if (!settings.selectedModel) renderSelectedModel(null);
@@ -1687,14 +1687,14 @@
     welcomeHint.textContent = availableModels.length
       ? (settings.appLanguage === "ru" ? "Модели готовы к работе." : "Local models are ready.")
       : (settings.appLanguage === "ru" ? "Нажми «Быстрая настройка» — приложение подготовит модель само." : "Choose Quick setup to prepare your first model automatically.");
-    $("localSetupCard").hidden = !MusicalAI.shouldShowSetup(local, availableModels.length, settings.localSetupCompleted);
+    $("localSetupCard").hidden = !MultiMind.shouldShowSetup(local, availableModels.length, settings.localSetupCompleted);
     $("localSetupBtn").disabled = !local.supported || ["windows", "windows-install", "engine", "extracting", "model", "starting"].includes(local.stage);
     renderModelDropdown();
-    updateMusicalControls();
+    updateMultiMindControls();
     if(settings.selectedModel?.startsWith('cloud:'))welcomeHint.textContent=settings.appLanguage==='ru'?'Ollama Cloud: сообщения отправляются в облако.':'Ollama Cloud: messages are sent to the cloud.';
   }
 
-  function updateMusicalControls() {
+  function updateMultiMindControls() {
     const ru = settings.appLanguage === "ru";
     $("skillsHint").textContent = ru ? "Импортируй инструкции из Markdown и включи нужные для следующих запросов." : "Import Markdown instructions and enable them for your next requests.";
     $("importSkillBtn").textContent = ru ? "Импорт .md" : "Import .md";
@@ -1824,7 +1824,7 @@
     } catch (error) { $("localSetupStatus").textContent = error.message; }
     finally { $("installOllamaBtn").disabled = false; }
   });
-  $("teamToggle").addEventListener("click", () => { settings.teamEnabled = !settings.teamEnabled; updateMusicalControls(); persist(); });
+  $("teamToggle").addEventListener("click", () => { settings.teamEnabled = !settings.teamEnabled; updateMultiMindControls(); persist(); });
   for (let i = 0; i < 2; i++) $("workerModel" + i).addEventListener("change", event => {
     if (!Array.isArray(settings.workerModels)) settings.workerModels = [];
     settings.workerModels[i] = event.target.value; persist();
@@ -2381,13 +2381,13 @@
     const reasoning = thinkingEl.querySelector(".thinking-reasoning");
     const label = thinkingEl.querySelector(".thinking-stage-label");
     const time = thinkingEl.querySelector(".thinking-stage-time");
-    const musicalStatus = thinkingEl.querySelector(".thinking-inline");
+    const multimindStatus = thinkingEl.querySelector(".thinking-inline");
     if (reasoning) reasoning.classList.add("is-collapsed");
     if (label) label.textContent = "Thought";
     if (time) time.textContent = formatDuration(thinkingThoughtDurationMs);
-    if (reasoning && musicalStatus) {
-      reasoning.parentElement.insertBefore(musicalStatus, reasoning.nextSibling);
-      musicalStatus.classList.add("thinking-after-thought");
+    if (reasoning && multimindStatus) {
+      reasoning.parentElement.insertBefore(multimindStatus, reasoning.nextSibling);
+      multimindStatus.classList.add("thinking-after-thought");
     }
   }
 
@@ -2433,8 +2433,8 @@
       : (mode === "image" ? "Creating image" : "Thinking");
     if (logo) {
       logo.innerHTML = `
-        <img class="thinking-logo-ghost" src="resources/musical-logo.svg" alt="">
-        <img class="thinking-logo-line" src="resources/musical-logo.svg" alt="">
+        <img class="thinking-logo-ghost" src="resources/multimind-logo.svg" alt="">
+        <img class="thinking-logo-line" src="resources/multimind-logo.svg" alt="">
       `;
     }
     if (label) {
@@ -2712,7 +2712,7 @@
     if (settings.accessMode === "ask") {
       const decision = await requestChangeApproval(
         "python packages",
-        `Musical AI needs to install Python packages so the app can run: ${packages.join(", ")}`
+        `MultiMind needs to install Python packages so the app can run: ${packages.join(", ")}`
       );
       if (decision === "deny") {
         addProgressItem(`Denied package install ${packages.join(", ")}`, "denied");
@@ -2795,7 +2795,7 @@
       const existing = data.groups.find(g => g.id === chat.groupId);
       return existing ? existing.folderName || existing.name : null;
     }
-    const groupName = "MusicalProject";
+    const groupName = "MultiMindProject";
     let folderName = groupName;
     if (window.api && window.api.ensureProjectFolder) {
       const folder = await window.api.ensureProjectFolder(groupName);
@@ -2828,7 +2828,7 @@
     }
     const needsApproval = fileAlreadyExists && settings.accessMode === "ask" && acceptedChangeChatId !== currentChatId;
     if (needsApproval) {
-      const decision = await requestChangeApproval(filePath, `Musical AI wants to change an existing file: ${filePath}`);
+      const decision = await requestChangeApproval(filePath, `MultiMind wants to change an existing file: ${filePath}`);
       if (decision === "deny") {
         addProgressItem(`Denied edit ${filePath}`, "denied");
         upsertCodingPreview(Object.assign({}, lastCodeActivity, { state: "editing" }), `Denied: ${filePath}`);
@@ -3262,7 +3262,7 @@
   //  SYSTEM PROMPT (общий ассистент, не только код)
   // ============================================================
   function buildSystemPrompt() {
-    const base = `\u0422\u044b ? Musical AI, \u0434\u0440\u0443\u0436\u0435\u043b\u044e\u0431\u043d\u044b\u0439 \u0438 \u043f\u043e\u043b\u0435\u0437\u043d\u044b\u0439 AI-\u0430\u0441\u0441\u0438\u0441\u0442\u0435\u043d\u0442. \u0422\u044b \u043f\u043e\u043c\u043e\u0433\u0430\u0435\u0448\u044c \u043b\u044e\u0434\u044f\u043c \u0441 \u0440\u0430\u0437\u043d\u044b\u043c\u0438 \u0437\u0430\u0434\u0430\u0447\u0430\u043c\u0438: \u043e\u0442\u0432\u0435\u0442\u0430\u043c\u0438 \u043d\u0430 \u0432\u043e\u043f\u0440\u043e\u0441\u044b, \u043e\u0431\u044a\u044f\u0441\u043d\u0435\u043d\u0438\u044f\u043c\u0438, \u043f\u0438\u0441\u044c\u043c\u043e\u043c, \u043f\u0435\u0440\u0435\u0432\u043e\u0434\u0430\u043c\u0438, \u0438\u0434\u0435\u044f\u043c\u0438, \u043d\u0430\u0443\u043a\u043e\u0439, \u0443\u0447\u0451\u0431\u043e\u0439, \u0431\u044b\u0442\u043e\u0432\u044b\u043c\u0438 \u0434\u0435\u043b\u0430\u043c\u0438 \u0438 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435\u043c. \u041d\u0435 \u0441\u0447\u0438\u0442\u0430\u0439, \u0447\u0442\u043e \u043b\u044e\u0431\u0430\u044f \u043f\u0440\u043e\u0441\u044c\u0431\u0430 \u00ab\u0441\u043e\u0437\u0434\u0430\u0439\u00bb \u043e\u0437\u043d\u0430\u0447\u0430\u0435\u0442 \u043a\u043e\u0434. \u041f\u0438\u0448\u0438 \u043a\u043e\u0434 \u0442\u043e\u043b\u044c\u043a\u043e \u0435\u0441\u043b\u0438 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c \u044f\u0432\u043d\u043e \u043f\u0440\u043e\u0441\u0438\u0442 \u043a\u043e\u0434, \u0441\u0430\u0439\u0442, \u0438\u043d\u0442\u0435\u0440\u0444\u0435\u0439\u0441, \u0438\u0433\u0440\u0443 \u0438\u043b\u0438 \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435. \u041e\u0442\u0432\u0435\u0447\u0430\u0439 \u0435\u0441\u0442\u0435\u0441\u0442\u0432\u0435\u043d\u043d\u043e \u0438 \u043f\u043e\u043d\u044f\u0442\u043d\u043e. \u0412\u0441\u0435\u0433\u0434\u0430 \u043e\u0442\u0432\u0435\u0447\u0430\u0439 \u043d\u0430 \u044f\u0437\u044b\u043a\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f.`;
+    const base = `\u0422\u044b ? MultiMind, \u0434\u0440\u0443\u0436\u0435\u043b\u044e\u0431\u043d\u044b\u0439 \u0438 \u043f\u043e\u043b\u0435\u0437\u043d\u044b\u0439 AI-\u0430\u0441\u0441\u0438\u0441\u0442\u0435\u043d\u0442. \u0422\u044b \u043f\u043e\u043c\u043e\u0433\u0430\u0435\u0448\u044c \u043b\u044e\u0434\u044f\u043c \u0441 \u0440\u0430\u0437\u043d\u044b\u043c\u0438 \u0437\u0430\u0434\u0430\u0447\u0430\u043c\u0438: \u043e\u0442\u0432\u0435\u0442\u0430\u043c\u0438 \u043d\u0430 \u0432\u043e\u043f\u0440\u043e\u0441\u044b, \u043e\u0431\u044a\u044f\u0441\u043d\u0435\u043d\u0438\u044f\u043c\u0438, \u043f\u0438\u0441\u044c\u043c\u043e\u043c, \u043f\u0435\u0440\u0435\u0432\u043e\u0434\u0430\u043c\u0438, \u0438\u0434\u0435\u044f\u043c\u0438, \u043d\u0430\u0443\u043a\u043e\u0439, \u0443\u0447\u0451\u0431\u043e\u0439, \u0431\u044b\u0442\u043e\u0432\u044b\u043c\u0438 \u0434\u0435\u043b\u0430\u043c\u0438 \u0438 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435\u043c. \u041d\u0435 \u0441\u0447\u0438\u0442\u0430\u0439, \u0447\u0442\u043e \u043b\u044e\u0431\u0430\u044f \u043f\u0440\u043e\u0441\u044c\u0431\u0430 \u00ab\u0441\u043e\u0437\u0434\u0430\u0439\u00bb \u043e\u0437\u043d\u0430\u0447\u0430\u0435\u0442 \u043a\u043e\u0434. \u041f\u0438\u0448\u0438 \u043a\u043e\u0434 \u0442\u043e\u043b\u044c\u043a\u043e \u0435\u0441\u043b\u0438 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c \u044f\u0432\u043d\u043e \u043f\u0440\u043e\u0441\u0438\u0442 \u043a\u043e\u0434, \u0441\u0430\u0439\u0442, \u0438\u043d\u0442\u0435\u0440\u0444\u0435\u0439\u0441, \u0438\u0433\u0440\u0443 \u0438\u043b\u0438 \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435. \u041e\u0442\u0432\u0435\u0447\u0430\u0439 \u0435\u0441\u0442\u0435\u0441\u0442\u0432\u0435\u043d\u043d\u043e \u0438 \u043f\u043e\u043d\u044f\u0442\u043d\u043e. \u0412\u0441\u0435\u0433\u0434\u0430 \u043e\u0442\u0432\u0435\u0447\u0430\u0439 \u043d\u0430 \u044f\u0437\u044b\u043a\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f.`;
 
     const think = settings.thinkLevel;
     let thinkHint = "";
@@ -3287,7 +3287,7 @@
     if (settings.accessMode === "ask") {
       const decision = await requestChangeApproval(
         "package.json",
-        `Musical AI needs to install Node packages so the app can run: ${packages.join(", ")}`
+        `MultiMind needs to install Node packages so the app can run: ${packages.join(", ")}`
       );
       if (decision === "deny") {
         upsertCodingPreview(Object.assign({}, activity, { state: "editing" }), `Dependency install denied: ${packages.join(", ")}`);
@@ -3382,8 +3382,8 @@
     }
     if (!ollamaRunning && !requestModel?.startsWith('cloud:')) {
       return settings.appLanguage === "ru"
-        ? "Ollama не запущена. Запусти Ollama и нажми на индикатор статуса в Musical AI."
-        : "Ollama is not running. Start Ollama and click the status indicator in Musical AI.";
+        ? "Ollama не запущена. Запусти Ollama и нажми на индикатор статуса в MultiMind."
+        : "Ollama is not running. Start Ollama and click the status indicator in MultiMind.";
     }
     if (!requestModel || !availableModels.some(model => model.name === requestModel)) {
       return settings.appLanguage === "ru"
@@ -3447,7 +3447,7 @@
         const connections=await window.api.pluginsList();
         const tools=connections.filter(p=>p.enabled&&p.state==='connected').flatMap(p=>p.tools.map(tool=>({...tool,pluginId:p.id,pluginName:p.name})));
         if(tools.length) {
-          const context=await MusicalPlugins.run({messages:apiMessages,model:requestModel,tools,signal:requestController.signal,
+          const context=await MultiMindPlugins.run({messages:apiMessages,model:requestModel,tools,signal:requestController.signal,
             authorize:async(tool,args)=>{
               if(settings.accessMode==='plan')return false;
               if(settings.accessMode!=='ask'||acceptedChangeChatId===currentChatId)return true;
@@ -3466,10 +3466,10 @@
       }
       if (settings.teamEnabled && !userImages?.length) {
         const workers = [0, 1].map(i => availableModels.some(m => m.name === settings.workerModels?.[i]) ? settings.workerModels[i] : requestModel);
-        const embeddedOnly = [requestModel, ...workers].every(name => name.startsWith("musical:"));
-        const team = await MusicalAI.runTeam({
+        const embeddedOnly = [requestModel, ...workers].every(name => name.startsWith("multimind:"));
+        const team = await MultiMind.runTeam({
           messages: apiMessages, model: requestModel, workerModels: workers,
-          concurrency: new Set(workers.filter(name => name.startsWith("musical:"))).size > 1 ? 1 : embeddedOnly ? localRuntimeState.slots || 1 : (navigator.hardwareConcurrency >= 8 ? 2 : 1),
+          concurrency: new Set(workers.filter(name => name.startsWith("multimind:"))).size > 1 ? 1 : embeddedOnly ? localRuntimeState.slots || 1 : (navigator.hardwareConcurrency >= 8 ? 2 : 1),
           signal: requestController.signal,
           onUpdate: rows => { if (generationId === activeGenerationId) renderTeam(rows); }
         });
@@ -3478,7 +3478,7 @@
         renderTeam([...team.rows, { id: "synthesis", title: settings.appLanguage === "ru" ? "Общий ответ" : "Final answer", model: requestModel, status: "working", elapsed: 0, started: Date.now() }]);
       }
       requestController.signal.throwIfAborted();
-      const response = await MusicalAI.chatFetch("http://127.0.0.1:11434/api/chat", {
+      const response = await MultiMind.chatFetch("http://127.0.0.1:11434/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(reqBody),
@@ -3547,7 +3547,7 @@
         collapseThinkingToThought();
         const fallbackBody = Object.assign({}, reqBody, { stream: false });
         if (Object.prototype.hasOwnProperty.call(fallbackBody, "think")) fallbackBody.think = false;
-        const fallbackResponse = await MusicalAI.chatFetch("http://127.0.0.1:11434/api/chat", {
+        const fallbackResponse = await MultiMind.chatFetch("http://127.0.0.1:11434/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(fallbackBody),
@@ -4142,8 +4142,8 @@
       const decision = await requestChangeApproval(
         "Flux Python packages",
         settings.appLanguage === "ru"
-          ? `Musical AI нужно установить Python-пакеты для локальной генерации Flux: ${FLUX_PYTHON_PACKAGES.join(", ")}`
-          : `Musical AI needs to install Python packages for local Flux image generation: ${FLUX_PYTHON_PACKAGES.join(", ")}`
+          ? `MultiMind нужно установить Python-пакеты для локальной генерации Flux: ${FLUX_PYTHON_PACKAGES.join(", ")}`
+          : `MultiMind needs to install Python packages for local Flux image generation: ${FLUX_PYTHON_PACKAGES.join(", ")}`
       );
       if (decision === "deny") return false;
     }
@@ -4153,7 +4153,7 @@
       : `Installing Flux packages: ${FLUX_PYTHON_PACKAGES.join(", ")}`;
     const progressId = addProgressItem(title, "pending");
     appendTerminalLine(`py -m pip install ${FLUX_PYTHON_PACKAGES.join(" ")}`);
-    const result = await window.api.installPythonPackages(FLUX_PYTHON_PACKAGES, "MusicalProject");
+    const result = await window.api.installPythonPackages(FLUX_PYTHON_PACKAGES, "MultiMindProject");
     if (result?.ok) {
       updateProgressItem(progressId, "done", settings.appLanguage === "ru"
         ? "Flux-пакеты установлены"
@@ -4806,7 +4806,7 @@
   });
 
   function modelFamilyName(model) {
-    const name = model.name.toLowerCase().replace(/^musical:/, "");
+    const name = model.name.toLowerCase().replace(/^multimind:/, "");
     if (name.startsWith("llama") || name.includes("codellama")) return "Llama";
     if (name.startsWith("qwen")) return "Qwen";
     if (name.startsWith("gemma")) return "Gemma";
@@ -4976,9 +4976,9 @@
       { name: "qwen2.5-coder:1.5b", size: "1.0 GB", category: "Code", desc: "Qwen 2.5 Coder 1.5B" },
       { name: "qwen2.5-coder:3b", size: "1.9 GB", category: "Code", desc: "Qwen 2.5 Coder 3B" }
     ];
-    const allModels = nativeCatalog ? [...extras, ...MODEL_CATALOG.filter(model => !model.vision && /^(qwen3:|qwen2\.5|llama3\.[12]:|deepseek-r1:|deepseek-coder:|mistral:)/.test(model.name))].map(model => ({ ...model, name: model.name === "qwen2.5:1.5b" ? "musical:qwen2.5-1.5b" : `musical:${model.name}` })) : [...MODEL_CATALOG];
+    const allModels = nativeCatalog ? [...extras, ...MODEL_CATALOG.filter(model => !model.vision && /^(qwen3:|qwen2\.5|llama3\.[12]:|deepseek-r1:|deepseek-coder:|mistral:)/.test(model.name))].map(model => ({ ...model, name: model.name === "qwen2.5:1.5b" ? "multimind:qwen2.5-1.5b" : `multimind:${model.name}` })) : [...MODEL_CATALOG];
     availableModels
-      .filter(m => !m.name.startsWith('cloud:') && m.name.startsWith("musical:") === nativeCatalog && !allModels.find(c => c.name === m.name))
+      .filter(m => !m.name.startsWith('cloud:') && m.name.startsWith("multimind:") === nativeCatalog && !allModels.find(c => c.name === m.name))
       .forEach(m => allModels.push({
         name: m.name,
         desc: "Installed locally",
@@ -5054,7 +5054,7 @@
           actionHtml = isActive
             ? `<button class="catalog-btn" disabled>${escapeHtml(t("selected"))}</button>`
             : `<div class="catalog-actions"><button class="catalog-btn primary" data-action="select" data-model="${m.name}">${escapeHtml(t("choose"))}</button><button class="catalog-btn danger" data-action="delete" data-model="${m.name}" title="${escapeHtml(t("deleteModel"))}" aria-label="${escapeHtml(t("deleteModel"))}" data-tooltip="${escapeHtml(t("deleteModel"))}">\u00d7</button></div>`;
-          if (m.name.startsWith("musical:") && !isActive) actionHtml = `<button class="catalog-btn primary" data-action="select" data-model="${m.name}">${escapeHtml(t("choose"))}</button>`;
+          if (m.name.startsWith("multimind:") && !isActive) actionHtml = `<button class="catalog-btn primary" data-action="select" data-model="${m.name}">${escapeHtml(t("choose"))}</button>`;
         } else {
           actionHtml = `<button class="catalog-btn primary" data-action="pull" data-model="${m.name}">${escapeHtml(t("download"))}</button>`;
         }
@@ -5065,7 +5065,7 @@
         item.style.setProperty("--item-index", String(Math.min(index, 6)));
         item.innerHTML = `
           <div class="catalog-item-info">
-            <div class="catalog-item-name" title="${escapeHtml(m.name)}">${escapeHtml(m.name.replace(/^musical:/, ""))}</div>
+            <div class="catalog-item-name" title="${escapeHtml(m.name)}">${escapeHtml(m.name.replace(/^multimind:/, ""))}</div>
             <div class="catalog-item-desc">${escapeHtml(m.desc || "")}</div>
             <div class="catalog-item-meta">${statusHtml}<span class="catalog-size">${escapeHtml(m.size || "")}</span></div>
           </div>
@@ -5114,7 +5114,7 @@
     pullingModels[modelName] = 0;
     renderModelsCatalog(filter);
     let result;
-    try { result = modelName.startsWith("musical:") ? await window.api.localPull(modelName) : await window.api.pullModel(modelName); }
+    try { result = modelName.startsWith("multimind:") ? await window.api.localPull(modelName) : await window.api.pullModel(modelName); }
     catch (error) { result = { ok: false, error: error.message }; }
     delete pullingModels[modelName];
     await checkOllama();

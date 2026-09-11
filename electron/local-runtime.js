@@ -7,7 +7,7 @@ const { spawn } = require('child_process');
 const { Readable, Transform } = require('stream');
 const { pipeline } = require('stream/promises');
 
-const MODEL = 'musical:qwen2.5-1.5b';
+const MODEL = 'multimind:qwen2.5-1.5b';
 const ASSETS = {
   windows: { url: 'https://download.visualstudio.microsoft.com/download/pr/bd1c8d9d-ba95-4eee-bc6e-df1fcc876373/CC0FF0EB1DC3F5188AE6300FAEF32BF5BEEBA4BDD6E8E445A9184072096B713B/VC_redist.x64.exe', size: 25635768, sha: 'cc0ff0eb1dc3f5188ae6300faef32bf5beeba4bdd6e8e445a9184072096b713b' },
   engine: { url: 'https://github.com/ggml-org/llama.cpp/releases/download/b10549/llama-b10549-bin-win-cpu-x64.zip', size: 18581129, sha: '11d38f2ed878489b2c3d02b3d1a67683c02fbfb3d265876b9ede749a8dff5f1c' },
@@ -15,7 +15,7 @@ const ASSETS = {
 };
 
 async function registryAsset(model, signal) {
-  const name = model.replace(/^musical:/, '');
+  const name = model.replace(/^multimind:/, '');
   if (!/^[a-z0-9][a-z0-9._-]*:[a-z0-9][a-z0-9._-]*$/i.test(name)) throw new Error('Invalid model name');
   const [repository, tag] = name.split(':');
   const base = `https://registry.ollama.ai/v2/library/${repository}`;
@@ -68,7 +68,7 @@ function createLocalRuntime(dataDir, options = {}) {
   function models() {
     let index = {};
     try { index = JSON.parse(fs.readFileSync(indexFile, 'utf8')); } catch {}
-    const entries = Object.entries(index).filter(([name, item]) => name.startsWith('musical:') && /^[a-f0-9]{64}\.gguf$/.test(item.file) && fs.existsSync(path.join(root, item.file))).map(([name, item]) => ({ name, size: item.size, file: path.join(root, item.file), backend: 'embedded', details: {} }));
+    const entries = Object.entries(index).filter(([name, item]) => name.startsWith('multimind:') && /^[a-f0-9]{64}\.gguf$/.test(item.file) && fs.existsSync(path.join(root, item.file))).map(([name, item]) => ({ name, size: item.size, file: path.join(root, item.file), backend: 'embedded', details: {} }));
     if (fs.existsSync(defaultModelPath)) entries.unshift({ name: MODEL, size: ASSETS.model.size, file: defaultModelPath, backend: 'embedded', details: {} });
     return entries;
   }
@@ -90,8 +90,8 @@ function createLocalRuntime(dataDir, options = {}) {
     signal.throwIfAborted();
     report({ stage: 'windows-install', completed: 0, total: 0 });
     await new Promise((resolve, reject) => {
-      const script = "$ErrorActionPreference='Stop'; $signature=Get-AuthenticodeSignature -LiteralPath $env:MUSICAL_VC_INSTALLER; if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') { throw 'Invalid Microsoft signature' }; $installerProcess=Start-Process -FilePath $env:MUSICAL_VC_INSTALLER -ArgumentList '/install','/passive','/norestart' -Verb RunAs -WindowStyle Hidden -Wait -PassThru; if ($installerProcess.ExitCode -notin @(0,3010,1638)) { throw ('Windows component installation failed: '+$installerProcess.ExitCode) }";
-      const proc = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], { windowsHide: true, env: { ...process.env, MUSICAL_VC_INSTALLER: installer } });
+      const script = "$ErrorActionPreference='Stop'; $signature=Get-AuthenticodeSignature -LiteralPath $env:MULTIMIND_VC_INSTALLER; if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') { throw 'Invalid Microsoft signature' }; $installerProcess=Start-Process -FilePath $env:MULTIMIND_VC_INSTALLER -ArgumentList '/install','/passive','/norestart' -Verb RunAs -WindowStyle Hidden -Wait -PassThru; if ($installerProcess.ExitCode -notin @(0,3010,1638)) { throw ('Windows component installation failed: '+$installerProcess.ExitCode) }";
+      const proc = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], { windowsHide: true, env: { ...process.env, MULTIMIND_VC_INSTALLER: installer } });
       let error = '';
       proc.stderr.on('data', chunk => { error = (error + chunk).slice(-1200); });
       proc.on('error', reject);
@@ -165,7 +165,7 @@ function createLocalRuntime(dataDir, options = {}) {
           report({ stage: 'extracting' });
           await new Promise((resolve, reject) => {
             // Paths are passed through environment variables, never shell interpolation.
-            const proc = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Expand-Archive -LiteralPath $env:MUSICAL_ARCHIVE -DestinationPath $env:MUSICAL_RUNTIME -Force'], { windowsHide: true, env: { ...process.env, MUSICAL_ARCHIVE: zip, MUSICAL_RUNTIME: root }, signal });
+            const proc = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', 'Expand-Archive -LiteralPath $env:MULTIMIND_ARCHIVE -DestinationPath $env:MULTIMIND_RUNTIME -Force'], { windowsHide: true, env: { ...process.env, MULTIMIND_ARCHIVE: zip, MULTIMIND_RUNTIME: root }, signal });
             proc.on('error', reject);
             proc.on('exit', code => code === 0 ? resolve() : reject(new Error('Could not unpack local engine')));
           });

@@ -17,10 +17,10 @@
 }
 body.theme-light { --bg-main:#f6f6f6; --bg-sidebar:#ededed; --bg-surface:#fff; --bg-input:#e9e9e9; --bg-hover:#e0e0e0; --bg-active:#d7d7d7; --bg-user-msg:#e9e9e9; --text-primary:#222; --text-secondary:#666; --text-muted:#777; --accent:#444; --border:#ddd; --border-light:#ccc; }
 .side-logo { display:flex; align-items:center; justify-content:flex-start; gap:9px; width:auto; }
-.musical-mark-img { flex-shrink:0; filter:grayscale(1); }
-.app.tab-collapsed .musical-wordmark { display:none; }
-.musical-wordmark { font-size:16px; font-weight:550; letter-spacing:-.4px; color:var(--text-primary); }
-.musical-wordmark > span { color:var(--text-muted); margin-left:4px; font-size:10px; }
+.multimind-mark-img { flex-shrink:0; filter:grayscale(1); }
+.app.tab-collapsed .multimind-wordmark { display:none; }
+.multimind-wordmark { font-size:16px; font-weight:550; letter-spacing:-.4px; color:var(--text-primary); }
+.multimind-wordmark > span { color:var(--text-muted); margin-left:4px; font-size:10px; }
 .side-header { padding-left:14px; padding-right:10px; }
 .side-actions { gap:2px; }
 .sidebar,.app-toolbar,.side-header { border:0; }
@@ -137,7 +137,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible { outline:1px so
 /* Keep the input silhouette and logo alignment stable in every state. */
 .composer-field,.composer-field.composer-expanded,.composer-field:focus-within,
 .composer-field .composer-field-content,.composer-field.composer-expanded .composer-field-content { border-radius:12px 12px 0 0; }
-.musical-mark-img { transform:none; }
+.multimind-mark-img { transform:none; }
 .app.tab-collapsed .side-logo { justify-content:center; }
 .worker-picker { width:70%; min-width:0; position:relative; }
 .worker-picker-trigger { width:100%; position:relative; padding:10px 32px 10px 12px; border:0; border-radius:7px; background:var(--bg-surface); color:var(--text-primary); font:inherit; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; transition:border-radius .18s ease; }

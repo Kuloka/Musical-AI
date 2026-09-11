@@ -24,5 +24,16 @@ const fs=require('fs');
    console.log('PASS: '+(mobile?'mobile':'desktop')+' Cloudflare browser loads, switches to Turkish and opens Cloud tab.');
    await context.close();
   }
+  const fallback=await browser.newContext();
+  await fallback.route('**/site-core.js',route=>route.abort());
+  await fallback.route('**/effects.js',route=>route.abort());
+  const page=await fallback.newPage();
+  await page.goto('https://musical-ai.pages.dev/',{waitUntil:'load',timeout:30000});
+  await page.locator('h1').waitFor({state:'visible'});
+  if(await page.locator('.download-grid a').count()!==6)throw Error('Static download fallback missing');
+  if(await page.locator('html').getAttribute('lang')!=='en')throw Error('Static fallback language');
+  await page.screenshot({path:'artifacts/cloudflare-browser/static-fallback.png'});
+  console.log('PASS: English content and six downloads remain visible when both script bundles fail.');
+  await fallback.close();
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1});

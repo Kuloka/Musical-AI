@@ -1,21 +1,21 @@
 {
-  "name": "musical-ai",
+  "name": "multimind",
   "version": "1.19.0",
-  "description": "Musical AI - local AI workspace with collaborative agents",
+  "description": "MultiMind - local AI workspace with collaborative agents",
   "main": "electron/main.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "check": "node --check electron/main.js && node --check electron/preload.js && node --check renderer.js && node --check musical-ai.js && node --check electron/local-runtime.js && node --check electron/storage-migration.js && node --check electron/app-skills.js && node --check electron/discord-activity.js && node --check electron/discord-media.js && node --check electron/mcp-plugins.js && node --check electron/workspace-mcp.js && node --check plugins-chat.js && node --check electron/ollama-cloud.js",
+    "check": "node --check electron/main.js && node --check electron/preload.js && node --check renderer.js && node --check multimind.js && node --check electron/local-runtime.js && node --check electron/storage-migration.js && node --check electron/app-skills.js && node --check electron/discord-activity.js && node --check electron/discord-media.js && node --check electron/mcp-plugins.js && node --check electron/workspace-mcp.js && node --check plugins-chat.js && node --check electron/ollama-cloud.js",
     "fix:encoding": "node scripts/fix-mojibake.js --write",
     "dist:win": "electron-builder --win nsis portable",
     "test": "node --test tests/*.test.js"
   },
-  "productName": "Musical AI",
+  "productName": "MultiMind",
   "private": true,
   "build": {
-    "appId": "ai.musical.place",
-    "productName": "Musical AI",
+    "appId": "ai.multimind.place",
+    "productName": "MultiMind",
     "files": [
       "**/*",
       "!dist/**",
@@ -31,7 +31,7 @@
       "output": "dist"
     },
     "win": {
-      "icon": "resources/musical-logo.ico",
+      "icon": "resources/multimind-logo.ico",
       "target": [
         "nsis",
         "portable"
@@ -41,26 +41,26 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "Musical AI",
+      "shortcutName": "MultiMind",
       "guid": "b74d891e-393a-5bfb-895d-fb3070229109"
     },
     "mac": {
       "category": "public.app-category.productivity",
-      "icon": "resources/musical-logo-mac.png",
+      "icon": "resources/multimind-logo-mac.png",
       "target": [
         "dmg"
       ],
-      "artifactName": "Musical-AI-macOS-1.19.0-${arch}.${ext}"
+      "artifactName": "MultiMind-macOS-1.19.0-${arch}.${ext}"
     },
     "linux": {
       "category": "Utility",
-      "icon": "resources/musical-logo.png",
+      "icon": "resources/multimind-logo.png",
       "target": [
         "AppImage",
         "deb"
       ],
-      "artifactName": "Musical-AI-Linux-1.19.0-${arch}.${ext}",
-      "maintainer": "Musical AI"
+      "artifactName": "MultiMind-Linux-1.19.0-${arch}.${ext}",
+      "maintainer": "MultiMind"
     },
     "asarUnpack": [
       "node_modules/@img/**/*",
@@ -77,6 +77,6 @@
     "zod": "^4.5.4"
   },
   "author": {
-    "name": "Musical AI"
+    "name": "MultiMind"
   }
 }

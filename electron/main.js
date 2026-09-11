@@ -8,7 +8,7 @@ const { getFluxStatus, downloadFluxVariant, runFluxGenerate } = require('./flux-
 const { createLocalRuntime } = require('./local-runtime');
 
 // ============================================================
-//  Musical AI data folders
+//  MultiMind data folders
 // ============================================================
 const { initializeStorage } = require('./storage-migration');
 const { dataDir: DATA_DIR, projectsDir: PROJECTS_DIR } = initializeStorage(os.homedir());
@@ -119,7 +119,7 @@ function getUniqueProjectFolderName(baseName, currentName = null) {
     fs.existsSync(path.join(PROJECTS_DIR, candidate)) &&
     candidate.toLowerCase() !== String(currentName || '').toLowerCase()
   ) {
-    candidate = base === 'MusicalProject' ? `${base}${index}` : `${base} ${index}`;
+    candidate = base === 'MultiMindProject' ? `${base}${index}` : `${base} ${index}`;
     index += 1;
   }
   return candidate;
@@ -173,7 +173,7 @@ async function internetSearch(query, preferredDomains = [], onProgress = null) {
   const url = `https://duckduckgo.com/html/?q=${encodeURIComponent(q)}`;
   const response = await fetch(url, {
     headers: {
-      'User-Agent': 'Mozilla/5.0 Musical AI/1.0',
+      'User-Agent': 'Mozilla/5.0 MultiMind/1.0',
       'Accept': 'text/html,application/xhtml+xml'
     }
   });
@@ -265,7 +265,7 @@ async function installPythonPackages(packages, folderName) {
     .filter(pkg => /^[a-zA-Z0-9_.-]+$/.test(pkg))));
   if (!safePackages.length) return { ok: true, packages: [] };
 
-  const folder = ensureProjectFolder(folderName || 'MusicalProject', folderName || 'MusicalProject');
+  const folder = ensureProjectFolder(folderName || 'MultiMindProject', folderName || 'MultiMindProject');
   const run = (command, args, timeoutMs = 20 * 60 * 1000) => new Promise(resolve => {
     const child = spawn(command, args, {
       cwd: folder.path,
@@ -352,7 +352,7 @@ async function installNodePackages(packages, folderName) {
     .filter(pkg => /^(?:@[a-zA-Z0-9_.-]+\/)?[a-zA-Z0-9_.-]+$/.test(pkg))));
   if (!safePackages.length) return { ok: true, packages: [] };
 
-  const folder = ensureProjectFolder(folderName || 'MusicalProject', folderName || 'MusicalProject');
+  const folder = ensureProjectFolder(folderName || 'MultiMindProject', folderName || 'MultiMindProject');
   const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   return new Promise(resolve => {
     const child = spawn(command, ['install', ...safePackages], {
@@ -418,9 +418,9 @@ function createWindow() {
     height: 780,
     minWidth: 820,
     minHeight: 520,
-    title: 'Musical AI',
+    title: 'MultiMind',
     frame: false,
-    icon: path.join(__dirname, '..', 'resources', process.platform === 'win32' ? 'musical-logo.ico' : 'musical-logo.png'),
+    icon: path.join(__dirname, '..', 'resources', process.platform === 'win32' ? 'multimind-logo.ico' : 'multimind-logo.png'),
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -468,7 +468,7 @@ function bundledOllamaCandidates() {
 }
 
 function findOllamaExe() {
-  // 1) bundled with Musical AI
+  // 1) bundled with MultiMind
   for (const c of bundledOllamaCandidates()) {
     if (fs.existsSync(c)) return c;
   }
@@ -884,7 +884,7 @@ ipcMain.handle('image:generate-online', async (_event, prompt) => {
     const text = String(prompt || '').trim().slice(0, 1200);
     if (!text) return { ok: false, error: 'Empty image prompt.' };
     const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(text)}?width=768&height=768&nologo=true`;
-    const response = await fetch(url, { headers: { 'User-Agent': 'Musical AI/1.1.7' } });
+    const response = await fetch(url, { headers: { 'User-Agent': 'MultiMind/1.1.7' } });
     if (!response.ok) return { ok: false, error: `Image service HTTP ${response.status}` };
     const bytes = Buffer.from(await response.arrayBuffer());
     if (!bytes.length) return { ok: false, error: 'Image service returned an empty file.' };

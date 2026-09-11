@@ -5,7 +5,7 @@ const os = require('os');
 const path = require('path');
 const { createSkillsStore } = require('../electron/app-skills');
 test('skills import separately, enable explicitly and retain enabled state', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'musical-skills-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'multimind-skills-'));
   try {
     const source = path.join(root, 'Concise.md');
     fs.writeFileSync(source, 'Keep answers concise.');
@@ -22,7 +22,7 @@ test('skills import separately, enable explicitly and retain enabled state', () 
   } finally {
     const target = path.resolve(root);
     assert.equal(path.dirname(target), path.resolve(os.tmpdir()));
-    assert.ok(path.basename(target).startsWith('musical-skills-'));
+    assert.ok(path.basename(target).startsWith('multimind-skills-'));
     fs.rmSync(target, { recursive: true });
   }
 });

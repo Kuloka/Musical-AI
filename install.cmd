@@ -1,8 +1,8 @@
 @echo off
-title Musical AI - Install
+title MultiMind - Install
 echo.
 echo   ========================================
-echo          Musical AI - Installation
+echo          MultiMind - Installation
 echo   ========================================
 echo.
 
@@ -29,7 +29,7 @@ echo   Ollama is optional and can be installed from the app.
 echo.
 echo   ========================================
 echo   Done! Now run start.vbs without a terminal window
-echo   Projects will be saved to: %USERPROFILE%\MusicalProject
+echo   Projects will be saved to: %USERPROFILE%\MultiMindProject
 echo   ========================================
 echo.
 pause

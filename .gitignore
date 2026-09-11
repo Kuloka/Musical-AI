@@ -10,6 +10,8 @@ release/
 *.asar
 
 # Electron and local runtime data
+.multimind-data/
+MultiMindProject/
 .musical-data/
 MusicalProject/
 .nevo-data/

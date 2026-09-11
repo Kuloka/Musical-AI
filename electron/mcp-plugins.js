@@ -19,7 +19,7 @@ function createPlugins(directory, projectsRoot) {
   async function connect(entry) {
     await disconnect(entry);
     if(!entry.config.enabled) return;
-    const client=new Client({name:'Musical-AI',version:'1.19.0'});
+    const client=new Client({name:'MultiMind',version:'1.19.0'});
     entry.client=client; entry.state='connecting'; entry.error='';
     const config=entry.config;
     try {

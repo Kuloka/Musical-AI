@@ -1,7 +1,7 @@
 const net = require('net');
 const path = require('path');
 const { randomUUID } = require('crypto');
-const DEFAULT_IMAGE = 'https://raw.githubusercontent.com/Kuloka/Musical-AI/af1f5506187fcf15dff810f5faa6773a596f4810/resources/musical-logo-animated.gif';
+const DEFAULT_IMAGE = 'https://raw.githubusercontent.com/Kuloka/MultiMind/main/resources/multimind-logo-animated.gif';
 
 function frame(op, value) {
   const body = Buffer.isBuffer(value) ? value : Buffer.from(JSON.stringify(value));
@@ -17,8 +17,8 @@ function createDiscordActivity({ connect = name => net.createConnection(name), r
   function sendActivity() {
     if (!ready || !socket) return;
     state = 'connecting';
-    const activity = { details: 'Creating with Musical AI', timestamps: { start: started }, instance: false };
-    if (config.image) activity.assets = { large_image: config.image, large_text: 'Musical AI' };
+    const activity = { details: 'Creating with MultiMind', timestamps: { start: started }, instance: false };
+    if (config.image) activity.assets = { large_image: config.image, large_text: 'MultiMind' };
     socket.write(frame(1, { cmd: 'SET_ACTIVITY', args: { pid: process.pid, activity }, nonce: randomUUID() }));
   }
   function stop() {

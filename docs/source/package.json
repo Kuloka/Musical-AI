@@ -1,5 +1,5 @@
 {
-  "name": "musical-site-effects",
+  "name": "multimind-site-effects",
   "private": true,
   "scripts": {
     "build": "node build.cjs"

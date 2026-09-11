@@ -57,7 +57,7 @@ async function getFluxStatus(modelsDir) {
 }
 
 function requestWithRedirect(url, onResponse, redirects = 0) {
-  return https.get(url, { headers: { 'User-Agent': 'Musical AI' } }, response => {
+  return https.get(url, { headers: { 'User-Agent': 'MultiMind' } }, response => {
     if ([301, 302, 303, 307, 308].includes(response.statusCode) && response.headers.location && redirects < 5) {
       response.resume();
       return requestWithRedirect(new URL(response.headers.location, url).toString(), onResponse, redirects + 1);

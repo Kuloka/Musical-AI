@@ -1,6 +1,7 @@
 name: Desktop packages
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - "v*"
@@ -58,7 +59,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Musical-AI-${{ matrix.platform }}-${{ matrix.arch }}
+          name: MultiMind-${{ matrix.platform }}-${{ matrix.arch }}
           if-no-files-found: error
           path: |
             dist/*.exe
@@ -67,6 +68,7 @@ jobs:
             dist/*.dmg
 
   release:
+    if: startsWith(github.ref, 'refs/tags/')
     needs: package
     runs-on: ubuntu-latest
 
@@ -79,7 +81,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: Musical AI ${{ github.ref_name }}
+          name: MultiMind ${{ github.ref_name }}
           generate_release_notes: true
           files: |
             release-files/**/*.exe

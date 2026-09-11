@@ -16,20 +16,20 @@ app.whenReady().then(async()=>{
     assert.ok(await win.webContents.executeJavaScript("!!document.querySelector('#antigravity canvas')"));
     await win.webContents.executeJavaScript("const card=document.querySelector('.button');const r=card.getBoundingClientRect();card.dispatchEvent(new PointerEvent('pointermove',{clientX:r.right-2,clientY:r.top+r.height/2,pointerType:'mouse'}));");
     assert.ok(await win.webContents.executeJavaScript("Number(document.querySelector('.button').style.getPropertyValue('--edge-proximity'))>90"));
-    fs.writeFileSync(path.join(out,'musical-site-motion.png'),(await win.webContents.capturePage()).toPNG());
+    fs.writeFileSync(path.join(out,'multimind-site-motion.png'),(await win.webContents.capturePage()).toPNG());
   }
   assert.equal(await win.webContents.executeJavaScript('document.documentElement.scrollWidth <= innerWidth'),true);
   assert.ok(await win.webContents.executeJavaScript("[...document.images].filter(image=>image.getBoundingClientRect().top<innerHeight).every(image=>image.complete&&image.naturalWidth>0)"));
   await win.webContents.executeJavaScript("document.querySelector('#tab-cloud').click()");
   assert.equal(await win.webContents.executeJavaScript("document.querySelector('#tab-cloud').getAttribute('aria-selected')"),'true');
   assert.match(await win.webContents.executeJavaScript("document.querySelector('#demo-content').textContent"),/API/);
-  fs.writeFileSync(path.join(out,'musical-site-desktop.png'),(await win.webContents.capturePage()).toPNG());
+  fs.writeFileSync(path.join(out,'multimind-site-desktop.png'),(await win.webContents.capturePage()).toPNG());
   const height=await win.webContents.executeJavaScript('document.documentElement.scrollHeight');
   win.setSize(1440,height);await new Promise(resolve=>setTimeout(resolve,200));
-  fs.writeFileSync(path.join(out,'musical-site-full.png'),(await win.webContents.capturePage()).toPNG());
+  fs.writeFileSync(path.join(out,'multimind-site-full.png'),(await win.webContents.capturePage()).toPNG());
   win.setSize(390,844);await new Promise(resolve=>setTimeout(resolve,250));
   assert.equal(await win.webContents.executeJavaScript('document.documentElement.scrollWidth <= innerWidth'),true);
-  fs.writeFileSync(path.join(out,'musical-site-mobile.png'),(await win.webContents.capturePage()).toPNG());
+  fs.writeFileSync(path.join(out,'multimind-site-mobile.png'),(await win.webContents.capturePage()).toPNG());
   for(const code of ['en','ru','es','pt','fr','de','it','tr','pl','uk']){
     await win.webContents.executeJavaScript(`document.querySelector('#language-toggle').click();document.querySelector('[data-language="${code}"]').click()`);
     assert.equal(await win.webContents.executeJavaScript('document.documentElement.lang'),code);
@@ -49,7 +49,7 @@ app.whenReady().then(async()=>{
   win.setSize(1440,1050);
   await win.webContents.executeJavaScript("document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));document.querySelector('#download').scrollIntoView({behavior:'instant'})");
   await new Promise(resolve=>setTimeout(resolve,300));
-  fs.writeFileSync(path.join(out,'musical-site-downloads.png'),(await win.webContents.capturePage()).toPNG());
+  fs.writeFileSync(path.join(out,'multimind-site-downloads.png'),(await win.webContents.capturePage()).toPNG());
   assert.ok(await win.webContents.executeJavaScript("[...document.querySelectorAll('a[href^=\"#\"]')].every(a=>a.hash===''||document.getElementById(a.hash.slice(1)))"));
   assert.deepEqual(errors,[]);console.log('PASS: desktop/mobile, 10 languages, persistence, keyboard menu, feature tabs, six downloads, no console errors');win.destroy();app.quit();
 }).catch(error=>{console.error(error.message);app.exit(1);});

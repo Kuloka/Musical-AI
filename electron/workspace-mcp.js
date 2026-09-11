@@ -4,17 +4,17 @@ const {Server}=require('@modelcontextprotocol/sdk/server/index.js');
 const {StdioServerTransport}=require('@modelcontextprotocol/sdk/server/stdio.js');
 const {ListToolsRequestSchema,CallToolRequestSchema}=require('@modelcontextprotocol/sdk/types.js');
 const root=path.resolve(process.argv[2]);
-const server=new Server({name:'Musical-Workspace',version:'1.0.0'},{capabilities:{tools:{}}});
+const server=new Server({name:'MultiMind-Workspace',version:'1.0.0'},{capabilities:{tools:{}}});
 server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:[
-  {name:'list_projects',description:'List local project folders in MusicalProject.',inputSchema:{type:'object',properties:{},additionalProperties:false}},
-  {name:'list_files',description:'List files in a project folder. Path is relative to MusicalProject.',inputSchema:{type:'object',properties:{path:{type:'string'}},required:['path'],additionalProperties:false}},
-  {name:'read_text_file',description:'Read a UTF-8 text file inside MusicalProject (maximum 32 KB).',inputSchema:{type:'object',properties:{path:{type:'string'}},required:['path'],additionalProperties:false}}
+  {name:'list_projects',description:'List local project folders in MultiMindProject.',inputSchema:{type:'object',properties:{},additionalProperties:false}},
+  {name:'list_files',description:'List files in a project folder. Path is relative to MultiMindProject.',inputSchema:{type:'object',properties:{path:{type:'string'}},required:['path'],additionalProperties:false}},
+  {name:'read_text_file',description:'Read a UTF-8 text file inside MultiMindProject (maximum 32 KB).',inputSchema:{type:'object',properties:{path:{type:'string'}},required:['path'],additionalProperties:false}}
 ]}));
 async function safePath(relative) {
   if(typeof relative!=='string'||path.isAbsolute(relative))throw new Error('Use a relative project path.');
   const realRoot=await fs.realpath(root), target=await fs.realpath(path.resolve(root,relative));
   const rel=path.relative(realRoot,target);
-  if(rel==='..'||rel.startsWith('..'+path.sep)||path.isAbsolute(rel))throw new Error('Path must stay inside MusicalProject.');
+  if(rel==='..'||rel.startsWith('..'+path.sep)||path.isAbsolute(rel))throw new Error('Path must stay inside MultiMindProject.');
   return target;
 }
 server.setRequestHandler(CallToolRequestSchema,async request=>{

@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { runTeam, chatFetch } = require('../musical-ai');
+const { runTeam, chatFetch } = require('../multimind');
 const { download } = require('../electron/local-runtime');
 const fs = require('fs');
 const os = require('os');
@@ -59,7 +59,7 @@ test('embedded streaming adapter preserves split UTF-8 and SSE boundaries', asyn
   const bytes = new TextEncoder().encode('data: {"choices":[{"delta":{"content":"Привет"}}]}\n\ndata: [DONE]\n\n');
   global.fetch = async () => new Response(new ReadableStream({ start(controller) { for (let i = 0; i < bytes.length; i += 3) controller.enqueue(bytes.slice(i, i + 3)); controller.close(); } }));
   try {
-    const response = await chatFetch('', { body: JSON.stringify({ model: 'musical:test', messages, stream: true }) });
+    const response = await chatFetch('', { body: JSON.stringify({ model: 'multimind:test', messages, stream: true }) });
     assert.equal(JSON.parse((await response.text()).trim()).message.content, 'Привет');
   } finally { global.fetch = original; }
 });
@@ -74,7 +74,7 @@ test('download resumes partial bytes, verifies SHA256, and rejects corrupt conte
     res.end(content.subarray(start));
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'musical-download-test-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'multimind-download-test-'));
   const destination = path.join(dir, 'archive');
   const asset = { url: `http://127.0.0.1:${server.address().port}`, size: content.length, sha: crypto.createHash('sha256').update(content).digest('hex') };
   try {

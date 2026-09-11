@@ -28,7 +28,7 @@
   async function chatFetch(url, init) {
     const body = JSON.parse(init.body);
     if (body.model.startsWith('cloud:')) return cloudFetch(body, init.signal);
-    if (!body.model.startsWith('musical:')) return fetch(url, init);
+    if (!body.model.startsWith('multimind:')) return fetch(url, init);
     if (root.api?.localActivate) {
       const ready = await root.api.localActivate(body.model);
       if (!ready.ok) throw new Error(ready.error || 'Could not start the local model');
@@ -162,5 +162,5 @@
   }
   const api = { chatFetch, runTeam, shouldShowSetup };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
-  else root.MusicalAI = api;
+  else root.MultiMind = api;
 })(typeof window !== 'undefined' ? window : globalThis);
