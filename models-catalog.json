@@ -18,6 +18,54 @@
       "recommendation": "low"
     },
     {
+      "id": "multimind:qwen2.5-coder-1.5b:q4_k_m",
+      "name": "Qwen2.5 Coder 1.5B Instruct",
+      "family": "Qwen Coder",
+      "quantization": "Q4_K_M",
+      "sizeBytes": 986048800,
+      "url": "https://huggingface.co/bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/1af47f78b1f9b0c242fabe43f7a365d5a67f3207/Qwen2.5-Coder-1.5B-Instruct-Q4_K_M.gguf",
+      "sha256": "f530705d447660a4336c329981af164b471b60b974b1d808d57e8ec9fe23b239",
+      "ramGiB": 2.5,
+      "minRamGiB": 6,
+      "recommendation": "low"
+    },
+    {
+      "id": "multimind:qwen2.5-coder-1.5b:q8_0",
+      "name": "Qwen2.5 Coder 1.5B Instruct",
+      "family": "Qwen Coder",
+      "quantization": "Q8_0",
+      "sizeBytes": 1646573344,
+      "url": "https://huggingface.co/bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/1af47f78b1f9b0c242fabe43f7a365d5a67f3207/Qwen2.5-Coder-1.5B-Instruct-Q8_0.gguf",
+      "sha256": "717ed8f7110e9ffc8a0e1a607ec131aa9ee3a8d69d5a6e11b5e15ed7b0f6af4c",
+      "ramGiB": 3,
+      "minRamGiB": 6,
+      "recommendation": "low"
+    },
+    {
+      "id": "multimind:qwen2.5-coder-3b:q4_k_m",
+      "name": "Qwen2.5 Coder 3B Instruct",
+      "family": "Qwen Coder",
+      "quantization": "Q4_K_M",
+      "sizeBytes": 1929903360,
+      "url": "https://huggingface.co/bartowski/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/7c137640ef0332dfedb229f2504c58d83ed4307a/Qwen2.5-Coder-3B-Instruct-Q4_K_M.gguf",
+      "sha256": "3da3afe6cf5c674ac195803ea0dd6fee7e1c228c2105c1ce8c66890d1d4ab460",
+      "ramGiB": 3.5,
+      "minRamGiB": 8,
+      "recommendation": "balanced"
+    },
+    {
+      "id": "multimind:qwen2.5-coder-3b:q8_0",
+      "name": "Qwen2.5 Coder 3B Instruct",
+      "family": "Qwen Coder",
+      "quantization": "Q8_0",
+      "sizeBytes": 3285476608,
+      "url": "https://huggingface.co/bartowski/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/7c137640ef0332dfedb229f2504c58d83ed4307a/Qwen2.5-Coder-3B-Instruct-Q8_0.gguf",
+      "sha256": "80d4fe6d15bd7b378b99c1cdd1370b4b1377f000b0477a425bbc871781b90536",
+      "ramGiB": 5,
+      "minRamGiB": 8,
+      "recommendation": "balanced"
+    },
+    {
       "id": "multimind:qwen2.5-3b:q4_k_m",
       "name": "Qwen2.5 3B Instruct",
       "family": "Qwen",

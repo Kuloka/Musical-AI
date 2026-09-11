@@ -40,15 +40,17 @@
     }
     function focusPoint() {
       const rect = canvas.getBoundingClientRect();
-      const target = resolveTarget(config.focusTarget);
-      if (!target || !target.getBoundingClientRect) return { x: width * config.focusX, y: height * config.focusY };
-      const box = target.getBoundingClientRect();
-      if (!box.width || !box.height || box.bottom < rect.top || box.top > rect.bottom || box.right < rect.left || box.left > rect.right) {
-        return { x: width * config.focusX, y: height * config.focusY };
-      }
+      const fallback = { x: width * config.focusX, y: height * config.focusY };
+      const center = (value, axis) => {
+        const target = resolveTarget(value);
+        if (!target || !target.getBoundingClientRect) return fallback[axis];
+        const box = target.getBoundingClientRect();
+        if (!box.width || !box.height || box.bottom < rect.top || box.top > rect.bottom || box.right < rect.left || box.left > rect.right) return fallback[axis];
+        return axis === 'x' ? box.left + box.width / 2 - rect.left : box.top + box.height / 2 - rect.top;
+      };
       return {
-        x: box.left + box.width / 2 - rect.left,
-        y: box.top + box.height / 2 - rect.top
+        x: center(config.focusXTarget || config.focusTarget, 'x'),
+        y: center(config.focusYTarget || config.focusTarget, 'y')
       };
     }
     function resize() {
@@ -142,6 +144,7 @@
     frame = requestAnimationFrame(draw);
     return {
       refresh() { resize(); bindClickTarget(); },
+      focusPoint,
       burstAt(x, y) { bursts.push({ x, y, radius: 0, life: 1 }); },
       destroy() {
         cancelAnimationFrame(frame);

@@ -24,9 +24,9 @@ async function fixture(t, handler) {
   return { dir, url: `http://127.0.0.1:${server.address().port}/model.gguf`, signal: new AbortController().signal };
 }
 
-test('catalog contains five new families in both quants with pinned integrity metadata', () => {
+test('catalog contains seven model lines with paired quants and pinned integrity metadata', () => {
   validateCatalog(catalog);
-  assert.equal(catalog.models.length, 11);
+  assert.equal(catalog.models.length, 15);
   const families = new Map();
   for (const model of catalog.models) {
     assert.match(model.url, /\/resolve\/[a-f0-9]{40}\//);
@@ -35,7 +35,7 @@ test('catalog contains five new families in both quants with pinned integrity me
     families.set(model.name, quants);
     assert.equal(catalogAsset(model.id).sha, model.sha256);
   }
-  assert.equal([...families.values()].filter(quants => quants.has('Q4_K_M') && quants.has('Q8_0')).length, 5);
+  assert.equal([...families.values()].filter(quants => quants.has('Q4_K_M') && quants.has('Q8_0')).length, 7);
   assert.throws(() => catalogAsset('multimind:unknown'), /Unknown/);
   const invalid = structuredClone(catalog);
   delete invalid.models[1].sha256;

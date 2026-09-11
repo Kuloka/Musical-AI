@@ -1393,15 +1393,17 @@
 
   function initGatewayFlowBackground() {
     if (!gatewayFlowBg || !window.MultiMindGatewayFlow) return;
-    window.MultiMindGatewayFlow.createGatewayFlow(gatewayFlowBg, {
+    const flow = window.MultiMindGatewayFlow.createGatewayFlow(gatewayFlowBg, {
       paths: 58,
       speed: 0.72,
       lineOpacity: 0.105,
       particleOpacity: 0.52,
       particleSize: 2,
       focusTarget: () => welcomeTitle,
+      focusXTarget: () => document.querySelector('.chat-stage'),
       focusY: 0.42
     });
+    gatewayFlowBg.gatewayFlow = flow;
   }
 
   function initElectricComposerBorder() {

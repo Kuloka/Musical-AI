@@ -58,9 +58,17 @@ app.whenReady().then(async () => {
   assert.ok(await win.webContents.executeJavaScript(`document.querySelector('#localSetupCard').getBoundingClientRect().bottom < document.querySelector('.composer').getBoundingClientRect().top`), 'Setup must not overlap composer');
   console.log('Welcome screenshot saved');
   if (process.argv.includes('--catalog')) {
+    const focusBeforePanel = await win.webContents.executeJavaScript("document.querySelector('#gatewayFlowBg').gatewayFlow.focusPoint().x");
+    await win.webContents.executeJavaScript("document.querySelector('#toolbarPanelBtn').click()");
+    await new Promise(resolve => setTimeout(resolve, 350));
+    const panelFocus = await win.webContents.executeJavaScript("(()=>{const canvas=document.querySelector('#gatewayFlowBg'),stage=document.querySelector('.chat-stage'),c=canvas.getBoundingClientRect(),s=stage.getBoundingClientRect();return {actual:canvas.gatewayFlow.focusPoint().x,expected:s.left+s.width/2-c.left}})()");
+    assert.ok(Math.abs(panelFocus.actual - panelFocus.expected) < 1, JSON.stringify(panelFocus));
+    assert.ok(panelFocus.actual < focusBeforePanel, 'Gateway focus must move with the narrower chat stage');
+    fs.writeFileSync(path.join(out, 'multimind-panel-centered.png'), (await win.webContents.capturePage()).toPNG());
+    await win.webContents.executeJavaScript("document.querySelector('#closePanelBtn').click()");
     await win.webContents.executeJavaScript("document.querySelector('#modelSelector').click();document.querySelector('#ddOpenModels').click()");
-    await waitFor(win, "document.querySelectorAll('.catalog-item[data-model^=\"multimind:\"]').length === 11");
-    assert.equal(await win.webContents.executeJavaScript("[...document.querySelectorAll('.catalog-item')].filter(item=>item.textContent.includes('GiB RAM')).length"), 11);
+    await waitFor(win, "document.querySelectorAll('.catalog-item[data-model^=\"multimind:\"]').length === 15");
+    assert.equal(await win.webContents.executeJavaScript("[...document.querySelectorAll('.catalog-item')].filter(item=>item.textContent.includes('GiB RAM')).length"), 15);
     assert.equal(await win.webContents.executeJavaScript("document.querySelector('.custom-gguf')"), null);
     await win.webContents.executeJavaScript("document.querySelector('#modelsSearch').value='llama3.2-1b';document.querySelector('#modelsSearch').dispatchEvent(new Event('input'))");
     assert.equal(await win.webContents.executeJavaScript("document.querySelectorAll('.catalog-item').length"), 2);
@@ -70,7 +78,7 @@ app.whenReady().then(async () => {
     assert.equal(await win.webContents.executeJavaScript("document.querySelectorAll('.catalog-item[data-model^=\"multimind:\"]').length"), 0);
     assert.ok(await win.webContents.executeJavaScript("document.querySelectorAll('.catalog-item').length > 0"));
     assert.deepEqual(errors, []);
-    console.log('PASS: 11 local variants, RAM badges, no custom URL block and Ollama tab isolation');
+    console.log('PASS: 15 local variants, RAM badges, no custom URL block and Ollama tab isolation');
     win.destroy(); app.quit(); return;
   }
   if (process.argv.includes('--cloud')) {
