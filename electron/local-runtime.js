@@ -155,7 +155,7 @@ function createLocalRuntime(dataDir, options = {}) {
         return { ok: true, model: requestedModel };
       } catch (error) {
         report({ stage: signal.aborted ? 'cancelled' : 'error', error: error.message });
-        return { ok: false, error: error.message };
+        return { ok: false, error: error.message, cancelled: signal.aborted };
       } finally { controller = null; }
     })().finally(() => { setupPromise = null; });
     return setupPromise;

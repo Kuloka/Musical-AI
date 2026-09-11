@@ -311,6 +311,7 @@
       </section>
       <section class="settings-block plugins-settings" data-settings-panel="plugins" hidden>
         <h3>Plugins</h3><p>MCP tools for your models. Enable a connection to make its tools available in chat.</p>
+        <div class="preset-grid" id="pluginPresets"></div>
         <form id="pluginForm">
           <label>Name<input id="pluginName" value="Workspace" maxlength="80" required></label>
           <label>Connection<select id="pluginType"><option value="builtin">Built-in Workspace</option><option value="stdio">Local MCP server (stdio)</option><option value="http">Remote MCP server (HTTP)</option></select></label>
@@ -335,6 +336,7 @@
       <section class="settings-block app-skills" data-settings-panel="skills" hidden>
         <strong>Skills</strong>
         <p id="skillsHint">Import Markdown instructions and enable them for your next requests.</p>
+        <div class="preset-grid" id="skillPresets"></div>
         <button class="catalog-btn" id="importSkillBtn" type="button">Import .md</button>
         <button class="catalog-btn" id="skillsFolderBtn" type="button">Open folder</button>
         <div id="skillsList"></div><p id="skillsError" role="status"></p>

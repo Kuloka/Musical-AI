@@ -18,6 +18,12 @@ app.whenReady().then(async()=>{
     await new Promise(resolve=>setTimeout(resolve,1600));
     assert.ok(await win.webContents.executeJavaScript("!!document.querySelector('#gateway-flow canvas')"));
     await win.webContents.executeJavaScript("document.querySelector('.hero h1').click()");
+    const heroFocus=await win.webContents.executeJavaScript("document.querySelector('#gateway-flow canvas').gatewayFlow.visibleFocusPoint().y");
+    await win.webContents.executeJavaScript("scrollTo({top:innerHeight*.5,behavior:'instant'})");
+    await new Promise(resolve=>setTimeout(resolve,900));
+    const centeredFocus=await win.webContents.executeJavaScript("document.querySelector('#gateway-flow canvas').gatewayFlow.visibleFocusPoint().y");
+    const viewportHeight=await win.webContents.executeJavaScript('innerHeight');
+    assert.ok(Math.abs(centeredFocus-viewportHeight/2)<8 && Math.abs(centeredFocus-heroFocus)>20);
     await win.webContents.executeJavaScript("const card=document.querySelector('.button');const r=card.getBoundingClientRect();card.dispatchEvent(new PointerEvent('pointermove',{clientX:r.right-2,clientY:r.top+r.height/2,pointerType:'mouse'}));");
     assert.ok(await win.webContents.executeJavaScript("Number(document.querySelector('.button').style.getPropertyValue('--edge-proximity'))>90"));
     fs.writeFileSync(path.join(out,'multimind-site-motion.png'),(await win.webContents.capturePage()).toPNG());

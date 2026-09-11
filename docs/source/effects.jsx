@@ -35,16 +35,26 @@ class QuietFallback extends Component {
 function Background(){
   const canvas=useRef(null);
   useEffect(()=>{
+    const heroTitle=document.querySelector('.hero h1');
+    const titleDocumentY=heroTitle.getBoundingClientRect().top+scrollY+heroTitle.getBoundingClientRect().height/2;
+    const scrollFocus={getBoundingClientRect(){
+      const progress=Math.min(1,Math.max(0,scrollY/(innerHeight*.42)));
+      const titleViewportY=titleDocumentY-scrollY;
+      const y=titleViewportY+(innerHeight/2-titleViewportY)*progress;
+      return {left:innerWidth/2-.5,right:innerWidth/2+.5,top:y-.5,bottom:y+.5,width:1,height:1};
+    }};
     const flow=GatewayFlow.createGatewayFlow(canvas.current,{
       paths:matchMedia('(max-width: 600px)').matches?42:72,
       speed:.82,
       lineOpacity:.14,
       particleOpacity:.72,
       particleSize:2.4,
-      focusTarget:()=>document.querySelector('.hero h1'),
-      interactiveTarget:()=>document.querySelector('.hero h1'),
+      focusTarget:scrollFocus,
+      interactiveTarget:heroTitle,
+      focusEase:.075,
       focusY:.3
     });
+    canvas.current.gatewayFlow=flow;
     return ()=>flow.destroy();
   },[]);
   return <canvas ref={canvas}/>;

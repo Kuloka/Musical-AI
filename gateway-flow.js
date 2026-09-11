@@ -13,7 +13,8 @@
     focusX: 0.5,
     focusY: 0.42,
     clickRadius: 110,
-    clickForce: 72
+    clickForce: 72,
+    focusEase: 0.09
   });
 
   function createGatewayFlow(canvas, options) {
@@ -31,7 +32,7 @@
     });
     const bursts = [];
     const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
-    let width = 1, height = 1, frame = 0, observer, clickElement;
+    let width = 1, height = 1, frame = 0, observer, clickElement, visibleFocus;
     canvas.dataset.gatewayFlow = 'active';
     canvas.dataset.gatewayInteractive = 'false';
 
@@ -85,7 +86,12 @@
       bindClickTarget();
       context.clearRect(0, 0, width, height);
       if (!document.hidden) {
-        const focus = focusPoint();
+        const targetFocus = focusPoint();
+        if (!visibleFocus) visibleFocus = { ...targetFocus };
+        const ease = reduceMotion.matches ? 1 : Math.min(1, Math.max(0.01, config.focusEase));
+        visibleFocus.x += (targetFocus.x - visibleFocus.x) * ease;
+        visibleFocus.y += (targetFocus.y - visibleFocus.y) * ease;
+        const focus = visibleFocus;
         const color = getComputedStyle(canvas).color || 'rgb(210, 210, 210)';
         bursts.forEach(function (item) {
           item.radius += 12;
@@ -145,6 +151,7 @@
     return {
       refresh() { resize(); bindClickTarget(); },
       focusPoint,
+      visibleFocusPoint() { return visibleFocus ? { ...visibleFocus } : focusPoint(); },
       burstAt(x, y) { bursts.push({ x, y, radius: 0, life: 1 }); },
       destroy() {
         cancelAnimationFrame(frame);

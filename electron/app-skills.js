@@ -1,6 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 
+const PRESETS = Object.freeze([
+  { id: 'code-review', name: 'Code Review.md', title: 'Code Review', description: 'Find bugs, regressions and risky changes.', content: '# Code Review\n\nReview code for correctness, security, regressions, unclear behavior and missing validation. Lead with concrete findings ordered by severity. Cite files and lines when available. Suggest the smallest safe fix and verify it.' },
+  { id: 'clear-writing', name: 'Clear Writing.md', title: 'Clear Writing', description: 'Make answers shorter, clearer and easier to scan.', content: '# Clear Writing\n\nUse plain language, short paragraphs and concrete examples. Put the answer first. Remove repetition, filler and vague claims. Preserve technical accuracy and the user\'s tone.' },
+  { id: 'project-planner', name: 'Project Planner.md', title: 'Project Planner', description: 'Turn an idea into practical ordered steps.', content: '# Project Planner\n\nBreak requests into a practical sequence with dependencies, risks and a clear completion check. Prefer small reviewable steps. State assumptions only when they affect the result.' }
+]);
+
 function createSkillsStore(dataDir) {
   const directory = path.join(dataDir, 'skills');
   const stateFile = path.join(dataDir, 'skills-enabled.json');
@@ -29,6 +35,13 @@ function createSkillsStore(dataDir) {
     fs.writeFileSync(path.join(directory, name), content, { flag: 'wx' });
     return list();
   }
-  return { directory, list, toggle, importFile };
+  function presets() { const installed = new Set(list().map(entry => entry.name)); return PRESETS.map(item => ({ id:item.id,title:item.title,description:item.description,installed:installed.has(item.name) })); }
+  function installPreset(id) {
+    const preset = PRESETS.find(item => item.id === id); if (!preset) throw new Error('Unknown skill preset');
+    const destination = path.join(directory, preset.name);
+    if (!fs.existsSync(destination)) fs.writeFileSync(destination, preset.content, { flag:'wx' });
+    return { entries: toggle(preset.name, true), presets: presets() };
+  }
+  return { directory, list, toggle, importFile, presets, installPreset };
 }
-module.exports = { createSkillsStore };
+module.exports = { createSkillsStore, PRESETS };

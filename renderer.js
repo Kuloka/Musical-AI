@@ -29,6 +29,15 @@
 
   let currentChatId = null;
   let activeSkillContext = "";
+  const PLUGIN_PRESETS = [
+    { id:'workspace', name:'Workspace Files', description:'Read and edit files inside MultiMind projects.', config:{ name:'Workspace Files', type:'builtin' } },
+    { id:'memory', name:'Memory', description:'Keep useful facts and entities between tasks.', config:{ name:'Memory', type:'stdio', command:navigator.platform.startsWith('Win')?'npx.cmd':'npx', args:['-y','@modelcontextprotocol/server-memory'] } },
+    { id:'sequential-thinking', name:'Sequential Thinking', description:'Break complex work into checked reasoning steps.', config:{ name:'Sequential Thinking', type:'stdio', command:navigator.platform.startsWith('Win')?'npx.cmd':'npx', args:['-y','@modelcontextprotocol/server-sequential-thinking'] } }
+  ];
+  function presetCard(item, installed, kind) {
+    const label=settings.appLanguage==='ru'?(installed?'Установлено':'Установить'):(installed?'Installed':'Install');
+    return `<article class="preset-card"><div><strong>${escapeHtml(item.title || item.name)}</strong><p>${escapeHtml(item.description)}</p></div><button class="preset-install${installed?' installed':''}" data-preset-kind="${kind}" data-preset="${escapeHtml(item.id)}" ${installed?'disabled':''}>${label}</button></article>`;
+  }
   function renderSkills(entries) {
     activeSkillContext = entries.filter(entry => entry.enabled).map(entry => `Skill: ${entry.name}\n${entry.content}`).join("\n\n");
     $("skillsList").innerHTML = entries.map(entry => `<label class="skill-row"><input type="checkbox" data-skill="${escapeHtml(entry.name)}" ${entry.enabled ? "checked" : ""}><span>${escapeHtml(entry.name)}</span></label>`).join("");
@@ -36,6 +45,10 @@
       try { renderSkills(await window.api.skillsToggle(input.dataset.skill, input.checked)); $("skillsError").textContent = ""; }
       catch (error) { input.checked = !input.checked; $("skillsError").textContent = error.message; }
     }));
+  }
+  function renderSkillPresets(items) {
+    const root=$('skillPresets'); if(!root)return; root.innerHTML=items.map(item=>presetCard(item,item.installed,'skill')).join('');
+    root.querySelectorAll('[data-preset-kind=skill]:not(:disabled)').forEach(button=>button.onclick=async()=>{button.classList.add('installing');button.disabled=true;try{const result=await window.api.skillsInstallPreset(button.dataset.preset);renderSkills(result.entries);renderSkillPresets(result.presets);$('skillsError').textContent='';}catch(error){button.classList.remove('installing');button.disabled=false;$('skillsError').textContent=error.message;}});
   }
   $("importSkillBtn").addEventListener("click", async () => {
     try { renderSkills(await window.api.skillsImport()); $("skillsError").textContent = ""; }
@@ -1179,7 +1192,7 @@
     else $('cloudError').textContent=message;
   });
   function renderPlugins(entries) {
-    const list=$('pluginsList');const signature=JSON.stringify(entries);if(list.dataset.signature===signature)return;list.dataset.signature=signature;list.replaceChildren();
+    const list=$('pluginsList');const signature=JSON.stringify(entries);if(list.dataset.signature===signature)return;list.dataset.signature=signature;list.replaceChildren();renderPluginPresets(entries);
     if(!entries.length){list.textContent=settings.appLanguage==='ru'?'Подключений пока нет.':'No connections yet.';return;}
     entries.forEach(plugin=>{
       const row=document.createElement('section');row.className='plugin-row';
@@ -1194,6 +1207,11 @@
       if(plugin.enabled&&plugin.state!=='connected'){const retry=document.createElement('button');retry.type='button';retry.className='catalog-btn';retry.textContent='Reconnect';retry.onclick=async()=>{retry.disabled=true;try{renderPlugins(await window.api.pluginsToggle(plugin.id,true));}catch(error){$('pluginsError').textContent=error.message;retry.disabled=false;}};row.append(retry);}
       const remove=document.createElement('button');remove.type='button';remove.className='catalog-btn';remove.textContent='Remove';remove.onclick=async()=>{try{renderPlugins(await window.api.pluginsRemove(plugin.id));}catch(error){$('pluginsError').textContent=error.message;}};row.append(remove);list.append(row);
     });
+  }
+  function renderPluginPresets(entries) {
+    const root=$('pluginPresets');if(!root)return;
+    root.innerHTML=PLUGIN_PRESETS.map(item=>presetCard(item,entries.some(entry=>entry.name===item.name),'plugin')).join('');
+    root.querySelectorAll('[data-preset-kind=plugin]:not(:disabled)').forEach(button=>button.onclick=async()=>{const item=PLUGIN_PRESETS.find(entry=>entry.id===button.dataset.preset);button.classList.add('installing');button.disabled=true;try{renderPlugins(await window.api.pluginsAdd(item.config));$('pluginsError').textContent='';}catch(error){button.classList.remove('installing');button.disabled=false;$('pluginsError').textContent=error.message;}});
   }
   async function refreshPlugins(){if(!window.api?.pluginsList)return;try{renderPlugins(await window.api.pluginsList());}catch(error){$('pluginsError').textContent=error.message;}}
   $('pluginType').addEventListener('change',()=>{
@@ -4994,7 +5012,7 @@
         let actionHtml = "";
         if (isPulling) {
           const pct = pullingModels[m.name];
-          actionHtml = `<div class="catalog-progress-wrap"><div class="catalog-progress"><div class="catalog-progress-fill" style="width:${pct}%"></div></div><span>${pct}%</span></div>`;
+          actionHtml = `<div class="catalog-progress-wrap"><div class="catalog-progress"><div class="catalog-progress-fill" style="width:${pct}%"></div></div><span>${pct}%</span><button class="catalog-cancel" data-action="cancel" data-model="${m.name}" title="Cancel download" aria-label="Cancel download">&times;</button></div>`;
         } else if (isInstalled) {
           actionHtml = isActive
             ? `<button class="catalog-btn" disabled>${escapeHtml(t("selected"))}</button>`
@@ -5017,7 +5035,7 @@
           <div class="catalog-action">${actionHtml}</div>
         `;
 
-        item.querySelectorAll(".catalog-btn[data-action]").forEach(btn => {
+        item.querySelectorAll("[data-action]").forEach(btn => {
           btn.addEventListener("click", async () => {
             const action = btn.dataset.action;
             const model = btn.dataset.model;
@@ -5026,6 +5044,9 @@
               renderModelsCatalog(modelsSearch ? modelsSearch.value : filter);
             } else if (action === "pull") {
               await pullModel(model, modelsSearch ? modelsSearch.value : filter);
+            } else if (action === "cancel") {
+              btn.disabled = true;
+              await window.api.cancelModelPull(model);
             } else if (action === "delete") {
               if (confirm(`${t("deleteModelConfirm")} "${model}"?`)) {
                 const deleted = await window.api.deleteModel(model);
@@ -5065,7 +5086,7 @@
     await checkOllama();
     if (result.ok) {
       selectModel(modelName);
-    } else {
+    } else if (!result.cancelled) {
       alert((settings.appLanguage === "ru" ? "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043a\u0430\u0447\u0430\u0442\u044c \u043c\u043e\u0434\u0435\u043b\u044c: " : "Failed to download model: ") + (result.error || (settings.appLanguage === "ru" ? "\u043d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u0430\u044f \u043e\u0448\u0438\u0431\u043a\u0430" : "unknown error")));
     }
     renderModelsCatalog(filter);
@@ -5143,6 +5164,7 @@
   async function init() {
     await loadData();
     if (window.api?.skillsList) renderSkills(await window.api.skillsList());
+    if (window.api?.skillsPresets) renderSkillPresets(await window.api.skillsPresets());
     await syncProjectFolders();
     setThinkLevel(settings.thinkLevel || "medium");
     setAccessMode(settings.accessMode || "ask");

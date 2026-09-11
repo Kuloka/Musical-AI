@@ -75,6 +75,8 @@ const FLUX_OUTPUT_DIR = path.join(DATA_DIR, 'generated-images');
 const localRuntime = createLocalRuntime(DATA_DIR);
 const skillsStore = require('./app-skills').createSkillsStore(DATA_DIR);
 ipcMain.handle('skills:list', () => skillsStore.list());
+ipcMain.handle('skills:presets', () => skillsStore.presets());
+ipcMain.handle('skills:install-preset', (_event, id) => skillsStore.installPreset(id));
 ipcMain.handle('skills:toggle', (_event, name, active) => skillsStore.toggle(name, active));
 ipcMain.handle('skills:folder', () => shell.openPath(skillsStore.directory));
 ipcMain.handle('skills:import', async event => {
@@ -754,13 +756,22 @@ ipcMain.handle('ollama:ensure-running', async () => {
 });
 
 // Скачать модель с прогрессом
+const ollamaPullControllers = new Map();
+ipcMain.handle('model:cancel-pull', (event, modelName) => {
+  if (String(modelName).startsWith('multimind:')) localRuntime.cancel();
+  else ollamaPullControllers.get(`${event.sender.id}:${modelName}`)?.abort();
+  return { ok:true };
+});
 ipcMain.handle('ollama:pull', async (event, modelName) => {
+  const key = `${event.sender.id}:${modelName}`;
+  const controller = new AbortController(); ollamaPullControllers.set(key, controller);
   try {
     if (!await ensureOllamaRunning(true)) throw new Error('Could not install or start Ollama. Use Quick setup or retry.');
     const response = await fetch(`${OLLAMA_HOST}/api/pull`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: modelName })
+      body: JSON.stringify({ name: modelName }),
+      signal: controller.signal
     });
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -799,8 +810,8 @@ ipcMain.handle('ollama:pull', async (event, modelName) => {
     }
     return { ok: true };
   } catch (err) {
-    return { ok: false, error: err.message };
-  }
+    return err.name === 'AbortError' ? { ok:false, cancelled:true } : { ok: false, error: err.message };
+  } finally { ollamaPullControllers.delete(key); }
 });
 
 // Удалить модель

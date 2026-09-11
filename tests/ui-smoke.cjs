@@ -10,6 +10,11 @@ ipcMain.handle('test:cloud-save',(_e,key)=>testCloud.save(key));
 ipcMain.handle('test:cloud-models',()=>testCloud.models());
 ipcMain.handle('test:cloud-disconnect',()=>testCloud.disconnect());
 const pluginHost=require(process.argv.includes('--packaged') ? path.join(root,'dist/win-unpacked/resources/app.asar/electron/mcp-plugins.js') : '../electron/mcp-plugins').createPlugins(path.join(out,'ui-plugins'),path.join(out,'ui-projects'));
+const skillStore=require('../electron/app-skills').createSkillsStore(path.join(out,'ui-skills'));
+ipcMain.handle('test:skills-list',()=>skillStore.list());
+ipcMain.handle('test:skills-presets',()=>skillStore.presets());
+ipcMain.handle('test:skills-install',(_e,id)=>skillStore.installPreset(id));
+ipcMain.handle('test:skills-toggle',(_e,name,enabled)=>skillStore.toggle(name,enabled));
 ipcMain.handle('test:plugins-list',()=>pluginHost.list());
 ipcMain.handle('test:plugins-add',(_e,config)=>pluginHost.add(config));
 ipcMain.handle('test:plugins-toggle',(_e,id,enabled)=>pluginHost.toggle(id,enabled));
@@ -21,9 +26,12 @@ const { catalog } = require('../electron/model-catalog');
 const runtime = createLocalRuntime(path.join(out, 'runtime-test'), process.argv.includes('--catalog') ? { port: 11439 } : {});
 app.on('window-all-closed', () => {});
 let started = false;
+let cancelPullResolve = null;
+let cancelledModel = null;
+ipcMain.handle('test:cancel-pull', (_event, model) => { cancelledModel=model;cancelPullResolve?.({ok:false,cancelled:true});return {ok:true}; });
 ipcMain.handle('test:status', async () => process.argv.includes('--polish') ? ({ running:false, installed:true, supported:true, stage:'idle', catalog:catalog.models, models:[{name:'multimind:qwen2.5-1.5b',size:1117320736},{name:'multimind:deepseek-coder:6.7b',size:3800000000}] }) : started ? runtime.status() : ({ running: false, supported: true, stage: 'idle', catalog: catalog.models, models: [] }));
 ipcMain.handle('test:setup', async () => { await runtime.start(); started = true; return { ok: true, model: MODEL }; });
-ipcMain.handle('test:pull', async (event, model) => { const result = await runtime.setup(() => {}, model); started = true; setTimeout(() => { if (!event.sender.isDestroyed()) event.sender.send('test:pull-progress', { model, percent: 0 }); }, 100); return result; });
+ipcMain.handle('test:pull', async (event, model) => { if(process.argv.includes('--cancel')){setTimeout(()=>{if(!event.sender.isDestroyed())event.sender.send('test:pull-progress',{model,percent:7});},30);return new Promise(resolve=>{cancelPullResolve=resolve;});} const result = await runtime.setup(() => {}, model); started = true; setTimeout(() => { if (!event.sender.isDestroyed()) event.sender.send('test:pull-progress', { model, percent: 0 }); }, 100); return result; });
 async function waitFor(win, expression, timeout = 90000) {
   const end = Date.now() + timeout;
   while (Date.now() < end) {
@@ -57,6 +65,18 @@ app.whenReady().then(async () => {
   assert.equal(await win.webContents.executeJavaScript("document.querySelector('#threadsBg')"), null);
   assert.ok(await win.webContents.executeJavaScript(`document.querySelector('#localSetupCard').getBoundingClientRect().bottom < document.querySelector('.composer').getBoundingClientRect().top`), 'Setup must not overlap composer');
   console.log('Welcome screenshot saved');
+  if (process.argv.includes('--cancel')) {
+    await win.webContents.executeJavaScript("document.querySelector('#modelSelector').click();document.querySelector('#ddOpenModels').click()");
+    await waitFor(win,"!!document.querySelector('.catalog-item [data-action=pull]')");
+    await win.webContents.executeJavaScript("document.querySelector('.catalog-item [data-action=pull]').click()");
+    await waitFor(win,"!!document.querySelector('.catalog-cancel[data-action=cancel]')");
+    await win.webContents.executeJavaScript("document.querySelector('.catalog-cancel[data-action=cancel]').click()");
+    await waitFor(win,"!document.querySelector('.catalog-cancel[data-action=cancel]')");
+    assert.ok(cancelledModel);
+    assert.deepEqual(errors,[]);
+    console.log('PASS: model download cancel button invokes cancellation and clears progress');
+    win.destroy();app.quit();return;
+  }
   if (process.argv.includes('--catalog')) {
     const focusBeforePanel = await win.webContents.executeJavaScript("document.querySelector('#gatewayFlowBg').gatewayFlow.focusPoint().x");
     await win.webContents.executeJavaScript("document.querySelector('#toolbarPanelBtn').click()");
@@ -100,7 +120,9 @@ app.whenReady().then(async () => {
   if (process.argv.includes('--plugins')) {
     for(const entry of pluginHost.list())await pluginHost.remove(entry.id);
     fs.mkdirSync(path.join(out,'ui-projects'),{recursive:true});
-    await win.webContents.executeJavaScript("document.querySelector('#settingsBtn').click();document.querySelector('[data-settings-tab=plugins]').click();document.querySelector('#pluginForm').requestSubmit()");
+    await win.webContents.executeJavaScript("document.querySelector('#settingsBtn').click();document.querySelector('[data-settings-tab=plugins]').click()");
+    await waitFor(win,"document.querySelectorAll('#pluginPresets .preset-card').length===3");
+    await win.webContents.executeJavaScript("document.querySelector('#pluginPresets .preset-install').click()");
     await waitFor(win,"!!document.querySelector('#pluginsList .activity-switch')");
     await win.webContents.executeJavaScript("document.querySelector('#pluginsList .activity-switch').click()");
     await waitFor(win,"document.querySelector('#pluginsList').textContent.includes('connected') && document.querySelector('#pluginsList').textContent.includes('list_projects')");
@@ -135,6 +157,11 @@ app.whenReady().then(async () => {
     fs.writeFileSync(path.join(out, 'multimind-settings.png'), (await win.webContents.capturePage()).toPNG());
     await win.webContents.executeJavaScript("document.querySelector('[data-lang=en]').click()");
     assert.equal(await win.webContents.executeJavaScript("document.documentElement.lang"), 'en');
+    await win.webContents.executeJavaScript("document.querySelector('[data-settings-tab=skills]').click()");
+    assert.equal(await win.webContents.executeJavaScript("document.querySelectorAll('#skillPresets .preset-card').length"),3);
+    await win.webContents.executeJavaScript("document.querySelector('#skillPresets .preset-install:not(:disabled)')?.click()");
+    await waitFor(win,"document.querySelectorAll('#skillsList .skill-row').length>0");
+    fs.writeFileSync(path.join(out, 'multimind-skill-presets.png'), (await win.webContents.capturePage()).toPNG());
     await win.webContents.executeJavaScript("document.querySelector('[data-settings-tab=models]').click()");
     assert.ok(await win.webContents.executeJavaScript("!document.querySelector('.agent-settings').hidden && document.querySelector('.settings-language').hidden"));
     assert.deepEqual(errors, []);

@@ -21,6 +21,8 @@ contextBridge.exposeInMainWorld('api', {
   discordExport: () => ipcRenderer.invoke('discord:export'),
   windowAction: action => ipcRenderer.invoke('window:action', action),
   skillsList: () => ipcRenderer.invoke('skills:list'),
+  skillsPresets: () => ipcRenderer.invoke('skills:presets'),
+  skillsInstallPreset: id => ipcRenderer.invoke('skills:install-preset', id),
   skillsImport: () => ipcRenderer.invoke('skills:import'),
   skillsToggle: (name, active) => ipcRenderer.invoke('skills:toggle', name, active),
   skillsFolder: () => ipcRenderer.invoke('skills:folder'),
@@ -30,6 +32,7 @@ contextBridge.exposeInMainWorld('api', {
   localStart: () => ipcRenderer.invoke('local:start'),
   localActivate: model => ipcRenderer.invoke('local:activate', model),
   localPull: model => ipcRenderer.invoke('local:pull', model),
+  cancelModelPull: model => ipcRenderer.invoke('model:cancel-pull', model),
   ollamaInstall: () => ipcRenderer.invoke('ollama:install'),
   onLocalProgress: cb => {
     const handler = (_event, data) => cb(data);
