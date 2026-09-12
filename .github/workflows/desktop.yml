@@ -77,12 +77,35 @@ jobs:
         with:
           path: release-files
 
+      - name: Replace legacy release files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            let release;
+            try {
+              ({ data: release } = await github.rest.repos.getReleaseByTag({
+                owner, repo, tag: context.ref.replace('refs/tags/', '')
+              }));
+            } catch (error) {
+              if (error.status === 404) return;
+              throw error;
+            }
+            for (const asset of release.assets.filter(asset => asset.name.includes('1.19.0'))) {
+              await github.rest.repos.deleteReleaseAsset({ owner, repo, asset_id: asset.id });
+            }
+            await github.rest.repos.updateRelease({
+              owner, repo, release_id: release.id, prerelease: false, draft: false
+            });
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: MultiMind ${{ github.ref_name }}
           generate_release_notes: true
+          prerelease: false
+          replacesArtifacts: true
           files: |
             release-files/**/*.exe
             release-files/**/*.AppImage
