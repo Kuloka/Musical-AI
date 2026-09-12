@@ -195,6 +195,16 @@
           </div>
 
           <div class="composer-right">
+            <div class="composer-mode-toggles" aria-label="Response modes">
+              <button type="button" class="composer-mode-toggle" id="deepThinkToggle" aria-pressed="false" data-tooltip="Think longer before answering">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7c.6.5 1 1.3 1 2.1V18h6v-1.2c0-.8.4-1.6 1-2.1A7 7 0 0012 2z"/></svg>
+                <span>Deep thinking</span>
+              </button>
+              <button type="button" class="composer-mode-toggle" id="smartSearchToggle" aria-pressed="false" data-tooltip="Search the web before answering">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.1 2.2 3.2 4.9 3.2 8S14.1 17.8 12 20c-2.1-2.2-3.2-4.9-3.2-8S9.9 6.2 12 4z"/></svg>
+                <span>Smart search</span>
+              </button>
+            </div>
             <button type="button" class="team-toggle" id="teamToggle" aria-pressed="true">Agents · Auto</button>
             <div class="access-selector" id="accessSelector">
               <button class="access-btn" id="accessBtn" title="Access mode">

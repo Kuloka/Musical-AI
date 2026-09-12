@@ -1,6 +1,6 @@
 {
   "name": "multimind",
-  "version": "1.19.0",
+  "version": "1.20.0",
   "description": "MultiMind - local AI workspace with collaborative agents",
   "main": "electron/main.js",
   "scripts": {
@@ -50,7 +50,7 @@
       "target": [
         "dmg"
       ],
-      "artifactName": "MultiMind-macOS-1.19.0-${arch}.${ext}"
+      "artifactName": "MultiMind-macOS-1.20.0-${arch}.${ext}"
     },
     "linux": {
       "category": "Utility",
@@ -59,7 +59,7 @@
         "AppImage",
         "deb"
       ],
-      "artifactName": "MultiMind-Linux-1.19.0-${arch}.${ext}",
+      "artifactName": "MultiMind-Linux-1.20.0-${arch}.${ext}",
       "maintainer": "MultiMind"
     },
     "asarUnpack": [

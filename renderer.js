@@ -28,6 +28,8 @@
   };
 
   let currentChatId = null;
+  let composerDeepThinking = false;
+  let composerSmartSearch = false;
   let activeSkillContext = "";
   const PLUGIN_PRESETS = [
     { id:'workspace', name:'Workspace Files', description:'Read and edit files inside MultiMind projects.', config:{ name:'Workspace Files', type:'builtin' } },
@@ -179,6 +181,8 @@
   const thinkBtn = $("thinkBtn");
   const thinkLabel = $("thinkLabel");
   const thinkDropdown = $("thinkDropdown");
+  const deepThinkToggle = $("deepThinkToggle");
+  const smartSearchToggle = $("smartSearchToggle");
   const modelsSearch = $("modelsSearch");
   const modelsCatalogTabs = $("modelsCatalogTabs");
 
@@ -1313,6 +1317,7 @@
     document.documentElement.lang = settings.appLanguage || "en";
     document.title = "MultiMind";
     updateMultiMindControls();
+    updateComposerModeToggles();
     const textById = {
       setupTitle: t("setupTitle"),
       groupModalTitle: t("newFolder"),
@@ -2013,6 +2018,29 @@
   sideLogo?.addEventListener('mouseenter', () => {
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) $('sidebarLogoMotion')?.beginElement();
   });
+
+  function updateComposerModeToggles() {
+    const russian = settings.appLanguage === "ru";
+    const modes = [
+      [deepThinkToggle, composerDeepThinking, russian ? "Глубокое мышление" : "Deep thinking", russian ? "Думает дольше и строит более подробный ответ." : "Thinks longer and produces a more detailed answer."],
+      [smartSearchToggle, composerSmartSearch, russian ? "Умный поиск" : "Smart search", russian ? "Ищет свежие источники в интернете перед ответом." : "Searches the web for fresh sources before answering."]
+    ];
+    modes.forEach(([button, active, label, hint]) => {
+      if (!button) return;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+      button.dataset.tooltip = hint;
+      button.querySelector("span").textContent = label;
+    });
+  }
+  deepThinkToggle?.addEventListener("click", () => {
+    composerDeepThinking = !composerDeepThinking;
+    updateComposerModeToggles();
+  });
+  smartSearchToggle?.addEventListener("click", () => {
+    composerSmartSearch = !composerSmartSearch;
+    updateComposerModeToggles();
+  });
   sideLogo?.addEventListener('mouseleave', () => $('sidebarLogoMotion')?.endElement());
   sideLogo?.addEventListener("click", () => {
     appEl?.classList.remove("tab-collapsed");
@@ -2410,7 +2438,8 @@
     ].some(word => lower.includes(word)) || /https?:\/\/|(?:^|\s)[a-z0-9-]+\.[a-z]{2,}(?:\s|\/|$)/i.test(text);
   }
 
-  function shouldUseInternetSmart(text) {
+  function shouldUseInternetSmart(text, force = false) {
+    if (force) return true;
     const raw = String(text || "").trim();
     const lower = raw.toLowerCase();
     const explicitWebWords = [
@@ -2473,8 +2502,8 @@
     domains.forEach(rememberPreferredWebSource);
   }
 
-  async function collectInternetContext(query) {
-    if (!window.api?.internetSearch || !shouldUseInternetSmart(query)) return "";
+  async function collectInternetContext(query, force = false) {
+    if (!window.api?.internetSearch || !shouldUseInternetSmart(query, force)) return "";
     setThinkingSearchingWeb();
     rememberPreferredWebSourcesFromText(query);
     setNeuralProgressStep(0);
@@ -3268,7 +3297,7 @@
   //  GENERATE (Ollama streaming)
   // ============================================================
   function ollamaOptionsForThink() {
-    const level = settings.thinkLevel;
+    const level = composerDeepThinking ? "high" : settings.thinkLevel;
     const availableThreads = navigator.hardwareConcurrency || 8;
     const opts = {
       num_ctx: 8192,
@@ -3372,9 +3401,9 @@
     if (fileTexts.length) {
       currentUserContent += "\n\n" + fileTexts.map(f => `File "${f.name}":\n\`\`\`\n${f.text.slice(0, 12000)}\n\`\`\``).join("\n\n");
     }
-    const useInternet = shouldUseInternetSmart(userText || currentUserContent);
+    const useInternet = shouldUseInternetSmart(userText || currentUserContent, composerSmartSearch);
     if (generationId !== activeGenerationId) return "_STOPPED_";
-    const internetContext = useInternet ? await collectInternetContext(userText || currentUserContent) : "";
+    const internetContext = useInternet ? await collectInternetContext(userText || currentUserContent, composerSmartSearch) : "";
     if (generationId !== activeGenerationId) return "_STOPPED_";
     if (internetContext) {
       currentUserContent += `\n\nUse this internet context when relevant. Cite source domains or URLs in the answer.\n${internetContext}`;
@@ -3394,7 +3423,7 @@
     };
     // think-параметр для моделей, которые его поддерживают
     if (modelSupportsThink(requestModel)) {
-      reqBody.think = settings.thinkLevel !== "none";
+      reqBody.think = composerDeepThinking || settings.thinkLevel !== "none";
     }
 
     const requestController = new AbortController();
@@ -4323,6 +4352,11 @@
     chat.messages.push(userMsg);
     if (!chat.title) chat.title = (displayText || "\u0418\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435").slice(0, 40);
     chat.updatedAt = Date.now();
+    // An empty draft is useful only in the composer. As soon as it has a
+    // message, make it a real Recent item immediately instead of waiting for
+    // the model response.
+    renderSidebar();
+    persist();
 
     // Clear composer
     inputEl.value = "";
@@ -4403,7 +4437,7 @@
     stopBtn.style.display = "flex";
     isGenerating = true;
     updateHomeMode();
-    showThinkingMessage("answer", text, shouldUseInternetSmart(text));
+    showThinkingMessage("answer", text, shouldUseInternetSmart(text, composerSmartSearch));
 
     const reply = await generateResponse(text, imgs, generationId);
     if (generationId !== activeGenerationId) return;
@@ -4597,13 +4631,22 @@
   function renderSidebar() {
     chatHistoryList.innerHTML = "";
 
+    // "New chat" is highlighted only while the current draft has no messages.
+    // Once the first message is sent, the chat becomes a normal Recent item.
+    const newChatButton = $("newChatBtn");
+    const currentChat = getCurrentChat();
+    newChatButton?.classList.toggle("active", !currentChat || !(currentChat.messages || []).length);
+
     // чаты без группы
-    const ungrouped = data.chats.filter(c => !c.groupId);
+    // Empty drafts belong to the active composer, not to Recent. This also
+    // hides older abandoned drafts saved by previous app versions.
+    const savedChats = data.chats.filter(c => (c.messages || []).length > 0);
+    const ungrouped = savedChats.filter(c => !c.groupId);
     ungrouped.forEach(c => chatHistoryList.appendChild(buildChatItem(c)));
 
     // группы
     data.groups.forEach(g => {
-      const groupChats = data.chats.filter(c => c.groupId === g.id);
+      const groupChats = savedChats.filter(c => c.groupId === g.id);
       const wrap = document.createElement("div");
       wrap.className = "chat-group";
 
@@ -4645,7 +4688,7 @@
       chatHistoryList.appendChild(wrap);
     });
 
-    if (data.chats.length === 0) {
+    if (savedChats.length === 0) {
       const hint = document.createElement("div");
       hint.className = "history-drop-hint";
       hint.textContent = t("emptyRecent");

@@ -1925,6 +1925,18 @@ body.has-composer-sheet .eb-layers {
   z-index: 1;
   border-radius: 0 0 20px 20px;
 }
+.composer-mode-toggles { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.composer-mode-toggle {
+  display: inline-flex; align-items: center; gap: 5px; min-height: 28px; padding: 0 9px;
+  border: 1px solid var(--border-light); border-radius: 8px; background: transparent;
+  color: var(--text-secondary); font: inherit; font-size: 11.5px; font-weight: 600; white-space: nowrap;
+  cursor: pointer; transition: border-color .16s ease, background .16s ease, color .16s ease, transform .16s ease;
+}
+.composer-mode-toggle svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.composer-mode-toggle:hover { color: var(--text-primary); border-color: var(--text-muted); background: var(--bg-hover); }
+.composer-mode-toggle.active { color: var(--text-bright); border-color: var(--text-muted); background: var(--bg-active); }
+.composer-mode-toggle:active { transform: scale(.97); }
+@media (max-width: 880px) { .composer-mode-toggle span { display: none; } .composer-mode-toggle { width: 30px; justify-content: center; padding: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
   .composer-moving-border { display: none; }

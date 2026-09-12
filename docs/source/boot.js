@@ -13,8 +13,8 @@
     }).catch(()=>{}).finally(()=>clearTimeout(timeout));
   }
   window.addEventListener('load',()=>{
-    load('site-core.js?v=1.19');
-    const effects=()=>load('effects.js?v=1.19');
+    load('site-core.js?v=1.20');
+    const effects=()=>load('effects.js?v=1.20');
     if('requestIdleCallback' in window)requestIdleCallback(effects,{timeout:2000});else setTimeout(effects,300);
   },{once:true});
 })();

@@ -2,7 +2,7 @@
   <img src="resources/branding/multimind-github.png" alt="MultiMind - your ideas, your models, your machine" width="100%">
 </p>
 <p align="center">
-  <a href="https://github.com/Kuloka/MultiMind/releases/tag/1.19">Download for Windows, macOS and Linux</a> &nbsp; / &nbsp;
+  <a href="https://github.com/Kuloka/MultiMind/releases/tag/v1.20.0">Download for Windows, macOS and Linux</a> &nbsp; / &nbsp;
   <a href="#development">Development</a>
 </p>
 
@@ -22,7 +22,7 @@ Existing Ollama installations are detected and started automatically. **Install 
 
 ## macOS and Linux installation
 
-Release 1.19 includes macOS DMGs for **Apple Silicon (arm64)** and **Intel (x64)**, plus Linux x64 **AppImage** and **Ubuntu/Debian .deb** packages. On Mac, open the DMG and drag MultiMind to Applications. These builds are unsigned and not notarized by Apple; macOS may require approval in Privacy & Security. On Linux, install the .deb or make the AppImage executable before launching it; AppImage may require FUSE.
+Release 1.20 includes macOS DMGs for **Apple Silicon (arm64)** and **Intel (x64)**, plus Linux x64 **AppImage** and **Ubuntu/Debian .deb** packages. On Mac, open the DMG and drag MultiMind to Applications. These builds are unsigned and not notarized by Apple; macOS may require approval in Privacy & Security. On Linux, install the .deb or make the AppImage executable before launching it; AppImage may require FUSE.
 
 For local models on these platforms, install Ollama and select the **Ollama** tab in the model catalog. The **Without Ollama / Quick setup** engine is Windows x64 only. Ollama Cloud is also available through settings. All four native CI jobs run the automated suite and check that the packaged app launches; inference on every platform and clean-machine installer flows have not been tested.
 
